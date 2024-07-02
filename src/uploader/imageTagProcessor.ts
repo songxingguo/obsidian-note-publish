@@ -18,6 +18,7 @@ const PROPERTIES_REGEX = /^---[\s\S]+?---\n/;
 interface Image {
   name: string;
   path: string;
+  fullPath: string;
   url: string;
   source: string;
 }
@@ -48,28 +49,31 @@ export default class ImageTagProcessor {
     const images = this.getImageLists(value);
     const uploader = this.imageUploader;
     for (const image of images) {
-      let filePath = await this.app.fileManager.getAvailablePathForAttachment(
+      const filePath = await this.app.fileManager.getAvailablePathForAttachment(
         normalizePath(image.path)
       );
-      filePath = `${path.dirname(filePath)}/${image.name}`;
-      console.log("filePath", filePath);
+      image.fullPath = `${path.dirname(filePath)}/${image.name}`;
       if (
-        (await this.app.vault.getAbstractFileByPath(normalizePath(filePath))) ==
-        null
+        (await this.app.vault.getAbstractFileByPath(
+          normalizePath(image.fullPath)
+        )) == null
       ) {
         new Notice(
-          `Can NOT locate ${image.name} with ${filePath}, please check image path or attachment option in plugin setting!`,
+          `Can NOT locate ${image.name} with ${image.fullPath}, please check image path or attachment option in plugin setting!`,
           10000
         );
-        console.log(`${normalizePath(filePath)} not exist`);
+        console.log(`${normalizePath(image.fullPath)} not exist`);
         break;
       }
-      const buf = await this.adapter.readBinary(filePath);
+      const buf = await this.adapter.readBinary(image.fullPath);
       promises.push(
         new Promise(function (resolve) {
           uploader
-            .upload(new File([buf], image.name), basePath + "/" + filePath)
-            .then((imgUrl) => {
+            .upload(
+              new File([buf], image.name),
+              basePath + "/" + image.fullPath
+            )
+            .then(async (imgUrl) => {
               image.url = imgUrl;
               resolve(image);
             })
@@ -86,7 +90,7 @@ export default class ImageTagProcessor {
 
     return (
       promises.length >= 0 &&
-      Promise.all(promises).then((images) => {
+      Promise.all(promises).then(async (images) => {
         let altText;
         for (const image of images) {
           altText = this.settings.imageAltText
@@ -97,6 +101,11 @@ export default class ImageTagProcessor {
             : "";
           // console.log(`replacing ${image.source} with ![${altText}](${image.url})`);
           value = value.replaceAll(image.source, `![${altText}](${image.url})`);
+          if (this.settings.deleteAttachments) {
+            await this.app.vault.delete(
+              this.app.vault.getAbstractFileByPath(image.fullPath)
+            );
+          }
         }
         if (this.settings.replaceOriginalDoc) {
           this.getEditor()?.setValue(value);

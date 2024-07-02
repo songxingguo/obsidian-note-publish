@@ -60,6 +60,17 @@ export default class PublishSettingTab extends PluginSettingTab {
       );
 
     new Setting(imageStoreTypeDiv)
+      .setName("Delete local attachments")
+      .setDesc(
+        "Whether to Delete local attachments after uploading is completed."
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.deleteAttachments)
+          .onChange((value) => (this.plugin.settings.deleteAttachments = value))
+      );
+
+    new Setting(imageStoreTypeDiv)
       .setName("Ignore note properties")
       .setDesc(
         "Where to ignore note properties when copying to clipboard. This won't affect original note."

@@ -15,6 +15,7 @@ import { ImagekitSetting } from "./uploader/imagekit/imagekitUploader";
 export interface PublishSettings {
   imageAltText: boolean;
   replaceOriginalDoc: boolean;
+  deleteAttachments: boolean;
   ignoreProperties: boolean;
   attachmentLocation: string;
   imageStore: string;
@@ -27,6 +28,7 @@ export interface PublishSettings {
 const DEFAULT_SETTINGS: PublishSettings = {
   imageAltText: true,
   replaceOriginalDoc: false,
+  deleteAttachments: true,
   ignoreProperties: true,
   attachmentLocation: ".",
   imageStore: ImageStore.IMGUR.id,
