@@ -29,10 +29,10 @@ export default class PublishSettingTab extends PluginSettingTab {
           .setPlaceholder("Enter folder name")
           .setValue(this.plugin.settings.attachmentLocation)
           .onChange(async (value) => {
-            if ((await this.app.vault.getAbstractFileByPath(value)) == null) {
-              new Notice(`Attachment location "${value}" not exist!`);
-              return;
-            }
+            // if ((await this.app.vault.getAbstractFileByPath(value)) == null) {
+            //   new Notice(`Attachment location "${value}" not exist!`);
+            //   return;
+            // }
             this.plugin.settings.attachmentLocation = value;
           })
       );

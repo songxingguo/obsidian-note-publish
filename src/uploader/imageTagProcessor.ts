@@ -48,23 +48,27 @@ export default class ImageTagProcessor {
     const images = this.getImageLists(value);
     const uploader = this.imageUploader;
     for (const image of images) {
+      let filePath = await this.app.fileManager.getAvailablePathForAttachment(
+        normalizePath(image.path)
+      );
+      filePath = `${path.dirname(filePath)}/${image.name}`;
+      console.log("filePath", filePath);
       if (
-        (await this.app.vault.getAbstractFileByPath(
-          normalizePath(image.path)
-        )) == null
+        (await this.app.vault.getAbstractFileByPath(normalizePath(filePath))) ==
+        null
       ) {
         new Notice(
-          `Can NOT locate ${image.name} with ${image.path}, please check image path or attachment option in plugin setting!`,
+          `Can NOT locate ${image.name} with ${filePath}, please check image path or attachment option in plugin setting!`,
           10000
         );
-        console.log(`${normalizePath(image.path)} not exist`);
+        console.log(`${normalizePath(filePath)} not exist`);
         break;
       }
-      const buf = await this.adapter.readBinary(image.path);
+      const buf = await this.adapter.readBinary(filePath);
       promises.push(
         new Promise(function (resolve) {
           uploader
-            .upload(new File([buf], image.name), basePath + "/" + image.path)
+            .upload(new File([buf], image.name), basePath + "/" + filePath)
             .then((imgUrl) => {
               image.url = imgUrl;
               resolve(image);
