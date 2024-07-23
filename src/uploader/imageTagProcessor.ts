@@ -141,6 +141,7 @@ export default class ImageTagProcessor {
         path: this.settings.attachmentLocation + "/" + path_name,
         source: match[0],
         url: "",
+        fullPath: ""
       });
     }
     for (const match of mdMatches) {
@@ -153,6 +154,7 @@ export default class ImageTagProcessor {
         path: decodedPath,
         source: match[0],
         url: "",
+        fullPath: ""
       });
     }
     return images;
