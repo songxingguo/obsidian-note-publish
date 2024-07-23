@@ -3,6 +3,7 @@ import { Notice, Plugin } from "obsidian";
 import ImageTagProcessor, {
   ACTION_PUBLISH,
 } from "./uploader/imageTagProcessor";
+import Links from "./transformers/links";
 import ImageUploader from "./uploader/imageUploader";
 import { ImgurAnonymousSetting } from "./uploader/imgur/imgurAnonymousUploader";
 import { IMGUR_PLUGIN_CLIENT_ID } from "./uploader/imgur/constants";
@@ -54,10 +55,12 @@ export default class ObsidianPublish extends Plugin {
   settings: PublishSettings;
   imageTagProcessor: ImageTagProcessor;
   imageUploader: ImageUploader;
+  Links: Links;
 
   async onload() {
     await this.loadSettings();
     this.setupImageUploader();
+    this.setupTransformer();
     this.addStatusBarItem().setText("Status Bar Text");
     this.addCommand({
       id: "publish-page",
@@ -88,12 +91,13 @@ export default class ObsidianPublish extends Plugin {
     await this.saveData(this.settings);
   }
 
-  private publish(): void {
+  private async publish(): Promise<void> {
     if (!this.imageUploader) {
       new Notice("Image uploader setup failed, please check setting.");
     } else {
-      this.imageTagProcessor.process(ACTION_PUBLISH).then(() => {});
+      await this.imageTagProcessor.process(ACTION_PUBLISH).then(() => {});
     }
+    await this.Links.process(ACTION_PUBLISH);
   }
 
   setupImageUploader(): void {
@@ -104,6 +108,14 @@ export default class ObsidianPublish extends Plugin {
         this.settings,
         this.imageUploader
       );
+    } catch (e) {
+      console.log(`Failed to setup image uploader: ${e}`);
+    }
+  }
+
+  setupTransformer(): void {
+    try {
+      this.Links = new Links(this.app, this.settings);
     } catch (e) {
       console.log(`Failed to setup image uploader: ${e}`);
     }

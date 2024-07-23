@@ -113,15 +113,15 @@ export default class ImageTagProcessor {
         if (this.settings.ignoreProperties) {
           value = value.replace(PROPERTIES_REGEX, "");
         }
-        switch (action) {
-          case ACTION_PUBLISH:
-            navigator.clipboard.writeText(value);
-            new Notice("Copied to clipboard");
-            break;
-          // more cases
-          default:
-            throw new Error("invalid action!");
-        }
+        // switch (action) {
+        //   case ACTION_PUBLISH:
+        //     navigator.clipboard.writeText(value);
+        //     new Notice("Copied to clipboard");
+        //     break;
+        //   // more cases
+        //   default:
+        //     throw new Error("invalid action!");
+        // }
       })
     );
   }
@@ -141,7 +141,7 @@ export default class ImageTagProcessor {
         path: this.settings.attachmentLocation + "/" + path_name,
         source: match[0],
         url: "",
-        fullPath: ""
+        fullPath: "",
       });
     }
     for (const match of mdMatches) {
@@ -154,7 +154,7 @@ export default class ImageTagProcessor {
         path: decodedPath,
         source: match[0],
         url: "",
-        fullPath: ""
+        fullPath: "",
       });
     }
     return images;
