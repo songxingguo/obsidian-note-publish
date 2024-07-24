@@ -1,4 +1,4 @@
-# Obsidian Image Upload Toolkit
+# Obsidian Note Publish
 
 This plugin cloud upload all local images embedded in markdown to specified remote image store
 (support [imgur](https://imgur.com),[AliYun OSS](https://www.alibabacloud.com/product/object-storage-service) and [Imagekit](https://imagekit.io), currently) and export markdown with image urls to clipboard directly.
@@ -13,14 +13,14 @@ During plugin development, I also referred to plugins [obsidian-imgur-plugin](ht
 (**the imgur uploading codes is from it**) and [obsidian-image-auto-upload-plugin](https://github.com/renmu123/obsidian-image-auto-upload-plugin). Thanks both for 
 providing such great plugins.
 
-This plugin is listed in the [Obsidian community plugins](https://obsidian.md/plugins?id=image-upload-toolkit) now.
+This plugin is listed in the [Obsidian community plugins](https://obsidian.md/plugins?id=note-publish) now.
 
 ## Usage
 
 Open command and type "publish page", it will upload all local images to remote store 
 and copy markdown with replaced image syntax to clipboard with notification. 
 
-![screenshot](https://github.com/addozhang/obsidian-image-upload-toolkit/assets/2224492/e190f65e-4f19-44e7-af40-a3f9f13e0e1d)
+![screenshot](https://github.com/songxingguo/obsidian-note-publish/assets/2224492/e190f65e-4f19-44e7-af40-a3f9f13e0e1d)
 
 ## TODO
 
