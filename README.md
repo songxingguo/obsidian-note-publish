@@ -24,11 +24,12 @@ and copy markdown with replaced image syntax to clipboard with notification.
 
 ## TODO
 
-- [ ] support uploading images to more storages
-  - [x] Aliyun Oss
-  - [x] ImageKit
-  - [ ] Amazon S3
+- [ ] support uploading to more static site
+  - [x] Yuque
+  - [x] Juejin
+  - [ ] WeChat Official Account
 - [x] setting for replacing images embedded in origin markdown directly
+- [x] Delete local image
 
 ## Contributing
 
@@ -64,6 +65,7 @@ npm run build
 (**reference to the imgur uploading codes in it**) 
 * [obsidian-image-auto-upload-plugin](https://github.com/renmu123/obsidian-image-auto-upload-plugin)
 * [create-obsidian-plugin](https://www.npmjs.com/package/create-obsidian-plugin)
+* [obsidian-image-upload-toolkit](https://github.com/addozhang/obsidian-image-upload-toolkit)
 
 ---
 
