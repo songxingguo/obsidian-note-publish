@@ -81,6 +81,34 @@ export default class PublishSettingTab extends PluginSettingTab {
           .onChange((value) => (this.plugin.settings.ignoreProperties = value))
       );
 
+    new Setting(imageStoreTypeDiv).setName("Yuque").setHeading();
+
+    new Setting(imageStoreTypeDiv).setName("Token").addText((text) =>
+      text
+        .setPlaceholder("Enter your Yuque Token")
+        .setValue(this.plugin.settings.yuqueSetting.token)
+        .onChange((value) => (this.plugin.settings.yuqueSetting.token = value))
+    );
+
+    new Setting(imageStoreTypeDiv).setName("BookId").addText((text) =>
+      text
+        .setPlaceholder("Enter your Yuque BookId")
+        .setValue(this.plugin.settings.yuqueSetting.bookId)
+        .onChange((value) => (this.plugin.settings.yuqueSetting.bookId = value))
+    );
+
+    new Setting(imageStoreTypeDiv)
+      .setName("Public Note")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.yuqueSetting.public)
+          .onChange(
+            (value) => (this.plugin.settings.yuqueSetting.public = value)
+          )
+      );
+
+    new Setting(imageStoreTypeDiv).setName("Image Store").setHeading();
+
     // Image Store
     new Setting(imageStoreTypeDiv)
       .setName("Image store")
@@ -96,6 +124,7 @@ export default class PublishSettingTab extends PluginSettingTab {
           await this.drawImageStoreSettings(this.imageStoreDiv);
         });
       });
+
     this.drawImageStoreSettings(this.imageStoreDiv)
       .then(() => {})
       .finally(() => {});

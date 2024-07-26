@@ -1,13 +1,14 @@
 import {
   App,
   Editor,
+  TFile,
   FileSystemAdapter,
   MarkdownView,
-  normalizePath,
   Notice,
 } from "obsidian";
 import path from "path";
 import { PublishSettings } from "../publish";
+import { log } from "console";
 
 const MD_REGEX = /\[(.*?)\]\((.*?)\)/g;
 const WIKI_REGEX = /\[\[(.*)\]\]/g;
@@ -20,6 +21,11 @@ interface Link {
   path: string;
   fullPath: string;
   source: string;
+}
+
+interface Doc {
+  title: string;
+  data: string;
 }
 
 export const ACTION_PUBLISH: string = "PUBLISH";
@@ -35,7 +41,7 @@ export default class Links {
     this.settings = settings;
   }
 
-  public async process(action: string): Promise<void> {
+  public async process(action: string): Promise<Doc> {
     let value = this.getValue();
     const links = this.getLinks(value);
 
@@ -62,7 +68,7 @@ export default class Links {
         default:
           throw new Error("invalid action!");
       }
-      resolve();
+      resolve({ title: this.getActiveFile().basename, data: value });
     });
   }
 
@@ -114,5 +120,9 @@ export default class Links {
     } else {
       return null;
     }
+  }
+
+  private getActiveFile(): TFile {
+    return this.app.workspace.getActiveFile() || null;
   }
 }

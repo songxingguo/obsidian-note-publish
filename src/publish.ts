@@ -12,7 +12,7 @@ import buildUploader from "./uploader/imageUploaderBuilder";
 import PublishSettingTab from "./ui/publishSettingTab";
 import { OssSetting } from "./uploader/oss/ossUploader";
 import { ImagekitSetting } from "./uploader/imagekit/imagekitUploader";
-
+import * as YuQue from "./api/yuque";
 export interface PublishSettings {
   imageAltText: boolean;
   replaceOriginalDoc: boolean;
@@ -24,6 +24,7 @@ export interface PublishSettings {
   imgurAnonymousSetting: ImgurAnonymousSetting;
   ossSetting: OssSetting;
   imagekitSetting: ImagekitSetting;
+  yuqueSetting: YuQue.YuQueSetting;
 }
 
 const DEFAULT_SETTINGS: PublishSettings = {
@@ -49,6 +50,11 @@ const DEFAULT_SETTINGS: PublishSettings = {
     privateKey: "",
     publicKey: "",
     folder: "",
+  },
+  yuqueSetting: {
+    token: "",
+    bookId: "",
+    public: true,
   },
 };
 export default class ObsidianPublish extends Plugin {
@@ -97,7 +103,8 @@ export default class ObsidianPublish extends Plugin {
     } else {
       await this.imageTagProcessor.process(ACTION_PUBLISH).then(() => {});
     }
-    await this.Links.process(ACTION_PUBLISH);
+    const { title, data } = await this.Links.process(ACTION_PUBLISH);
+    await YuQue.addDoc(this.settings.yuqueSetting, title, data);
   }
 
   setupImageUploader(): void {
