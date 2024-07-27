@@ -123,9 +123,9 @@ export class NotePreview extends ItemView {
             this.currentUuid = tocSelect.value;
         }
 
-        const res  = await YuQue.getToc(this.settings.yuqueSetting)
-
-        this.addSection(tocSelect, res.data)
+        const res = await YuQue.getToc(this.settings.yuqueSetting);
+        const data = res.data.filter((item: any) => item.level == 0);
+        this.addSection(tocSelect, data);
     
         // 复制，刷新，带图片复制，发草稿箱
         lineDiv = this.toolbar.createDiv({ cls: 'toolbar-line' });
