@@ -1,9 +1,9 @@
-import { Notice, Plugin } from "obsidian";
+import { Notice, WorkspaceLeaf, Plugin } from "obsidian";
 
 import ImageTagProcessor, {
   ACTION_PUBLISH,
 } from "./uploader/imageTagProcessor";
-import Links from "./transformers/links";
+import YuqueProcessor from "./transformers/yuqueProcessor";
 import ImageUploader from "./uploader/imageUploader";
 import { ImgurAnonymousSetting } from "./uploader/imgur/imgurAnonymousUploader";
 import { IMGUR_PLUGIN_CLIENT_ID } from "./uploader/imgur/constants";
@@ -13,6 +13,7 @@ import PublishSettingTab from "./ui/publishSettingTab";
 import { OssSetting } from "./uploader/oss/ossUploader";
 import { ImagekitSetting } from "./uploader/imagekit/imagekitUploader";
 import * as YuQue from "./api/yuque";
+import { NotePreview, VIEW_TYPE_NOTE_PREVIEW } from './ui/notepreview';
 export interface PublishSettings {
   imageAltText: boolean;
   replaceOriginalDoc: boolean;
@@ -53,7 +54,7 @@ const DEFAULT_SETTINGS: PublishSettings = {
   },
   yuqueSetting: {
     token: "",
-    bookId: "",
+    bookSlug: "",
     public: true,
   },
 };
@@ -61,13 +62,23 @@ export default class ObsidianPublish extends Plugin {
   settings: PublishSettings;
   imageTagProcessor: ImageTagProcessor;
   imageUploader: ImageUploader;
-  Links: Links;
+  yuqueProcessor: YuqueProcessor;
 
   async onload() {
     await this.loadSettings();
     this.setupImageUploader();
     this.setupTransformer();
     this.addStatusBarItem().setText("Status Bar Text");
+    this.registerView(
+			VIEW_TYPE_NOTE_PREVIEW,
+			(leaf) => new NotePreview(leaf, this.settings,  this.yuqueProcessor)
+		);
+    
+    const ribbonIconEl = this.addRibbonIcon('clipboard-paste', '复制到公众号', (evt: MouseEvent) => {
+			this.activateView();
+		});
+    ribbonIconEl.addClass('note-to-mp-plugin-ribbon-class');
+    
     this.addCommand({
       id: "publish-page",
       name: "Publish Page",
@@ -103,8 +114,6 @@ export default class ObsidianPublish extends Plugin {
     } else {
       await this.imageTagProcessor.process(ACTION_PUBLISH).then(() => {});
     }
-    const { title, data } = await this.Links.process(ACTION_PUBLISH);
-    await YuQue.addDoc(this.settings.yuqueSetting, title, data);
   }
 
   setupImageUploader(): void {
@@ -122,9 +131,25 @@ export default class ObsidianPublish extends Plugin {
 
   setupTransformer(): void {
     try {
-      this.Links = new Links(this.app, this.settings);
+      this.yuqueProcessor = new YuqueProcessor(this.app, this.settings);
     } catch (e) {
       console.log(`Failed to setup image uploader: ${e}`);
     }
   }
+
+	async activateView() {
+		const { workspace } = this.app;
+	
+		let leaf: WorkspaceLeaf | null = null;
+		const leaves = workspace.getLeavesOfType(VIEW_TYPE_NOTE_PREVIEW);
+	
+		if (leaves.length > 0) {
+			leaf = leaves[0];
+		} else {
+		  	leaf = workspace.getRightLeaf(false);
+		  	await leaf?.setViewState({ type: VIEW_TYPE_NOTE_PREVIEW, active: true });
+		}
+	
+		if (leaf) workspace.revealLeaf(leaf);
+	}
 }

@@ -90,11 +90,11 @@ export default class PublishSettingTab extends PluginSettingTab {
         .onChange((value) => (this.plugin.settings.yuqueSetting.token = value))
     );
 
-    new Setting(imageStoreTypeDiv).setName("BookId").addText((text) =>
+    new Setting(imageStoreTypeDiv).setName("BookSlug").addText((text) =>
       text
-        .setPlaceholder("Enter your Yuque BookId")
-        .setValue(this.plugin.settings.yuqueSetting.bookId)
-        .onChange((value) => (this.plugin.settings.yuqueSetting.bookId = value))
+        .setPlaceholder("Enter your Yuque BookSlug")
+        .setValue(this.plugin.settings.yuqueSetting.bookSlug)
+        .onChange((value) => (this.plugin.settings.yuqueSetting.bookSlug  = value))
     );
 
     new Setting(imageStoreTypeDiv)

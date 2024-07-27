@@ -6,9 +6,8 @@ import {
   MarkdownView,
   Notice,
 } from "obsidian";
-import path from "path";
 import { PublishSettings } from "../publish";
-import { log } from "console";
+import * as YuQue from './../api/yuque';
 
 const MD_REGEX = /\[(.*?)\]\((.*?)\)/g;
 const WIKI_REGEX = /\[\[(.*)\]\]/g;
@@ -23,12 +22,12 @@ interface Link {
   source: string;
 }
 
-interface Doc {
-  title: string;
-  data: string;
+interface DOC {
+  uuid: string;
 }
 
 export const ACTION_PUBLISH: string = "PUBLISH";
+export const ACTION_COPY: string = "COPY";
 
 export default class Links {
   private app: App;
@@ -41,8 +40,8 @@ export default class Links {
     this.settings = settings;
   }
 
-  public async process(action: string): Promise<Doc> {
-    let value = this.getValue();
+  public async process(action: string, params?: DOC): Promise<void> {
+    let value = await this.getValue();
     const links = this.getLinks(value);
 
     // 删除元信息
@@ -58,18 +57,21 @@ export default class Links {
       value = value.replaceAll(link.source, link.name);
     }
 
-    return new Promise((resolve) => {
-      switch (action) {
-        case ACTION_PUBLISH:
-          navigator.clipboard.writeText(value);
-          new Notice("Copied to clipboard");
-          break;
-        // more cases
-        default:
-          throw new Error("invalid action!");
-      }
-      resolve({ title: this.getActiveFile().basename, data: value });
-    });
+    const title  = this.getActiveFile().basename;
+
+    switch (action) {
+      case ACTION_PUBLISH:
+        const { data } = await YuQue.addDoc(this.settings.yuqueSetting, title, value);
+        await YuQue.updateToc(this.settings.yuqueSetting, params.uuid, data.id);
+        new Notice("Published successfully");
+        break;
+      case ACTION_COPY:
+        navigator.clipboard.writeText(value);
+        new Notice("Copied to clipboard");
+        break;
+      default:
+        throw new Error("invalid action!");
+    }
   }
 
   private getLinks(value: string): Link[] {
@@ -104,22 +106,9 @@ export default class Links {
     return links;
   }
 
-  private getValue(): string {
-    const editor = this.getEditor();
-    if (editor) {
-      return editor.getValue();
-    } else {
-      return "";
-    }
-  }
-
-  private getEditor(): Editor {
-    const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-    if (activeView) {
-      return activeView.editor;
-    } else {
-      return null;
-    }
+  private async getValue(): Promise<string> {
+    const file = this.getActiveFile();
+    return await this.app.vault.adapter.read(file.path);
   }
 
   private getActiveFile(): TFile {
