@@ -80,8 +80,8 @@ export default class ObsidianPublish extends Plugin {
     ribbonIconEl.addClass('note-to-mp-plugin-ribbon-class');
     
     this.addCommand({
-      id: "publish-page",
-      name: "Publish Page",
+      id: "upload-image",
+      name: "Upload Image",
       checkCallback: (checking: boolean) => {
         if (!checking) {
           this.publish();

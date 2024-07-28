@@ -1,10 +1,9 @@
-import { EventRef, ItemView, Workspace, WorkspaceLeaf, Notice, sanitizeHTMLToDom } from 'obsidian';
+import { ItemView, Workspace, WorkspaceLeaf } from 'obsidian';
 import { PublishSettings } from '../publish';
 import YuqueProcessor, {ACTION_PUBLISH, ACTION_COPY} from "./../transformers/yuqueProcessor";
 import * as YuQue from './../api/yuque';
 
 export const VIEW_TYPE_NOTE_PREVIEW = 'note-preview';
-
 export class NotePreview extends ItemView {
     workspace: Workspace;
     settings: PublishSettings;
@@ -63,17 +62,15 @@ export class NotePreview extends ItemView {
 
         let lineDiv = this.toolbar.createDiv({ cls: 'toolbar-line' });
 
-        // 公众号
-        lineDiv.createDiv({ cls: 'style-label' }).innerText = '目录:';
+        lineDiv.createDiv({ cls: 'style-label' }).innerText = '知识库目录（默认第一个）:';
         const tocSelect = lineDiv.createEl('select', { cls: 'style-select' })
         tocSelect.setAttr('style', 'width: 200px');
         tocSelect.onchange = async () => {
             this.currentUuid = tocSelect.value;
         }
-
         const res = await YuQue.getToc(this.settings.yuqueSetting);
         const data = res.data.filter((item: any) => item.level == 0);
-        this.addSection(tocSelect, data);
+        this.addSection(tocSelect, data, data[0].uuid);
     
         // 复制，刷新，带图片复制，发草稿箱
         lineDiv = this.toolbar.createDiv({ cls: 'toolbar-line' });
@@ -86,7 +83,7 @@ export class NotePreview extends ItemView {
         }
 
         const postBtn = lineDiv.createEl('button', { cls: 'copy-button' }, async (button) => {
-            button.setText('发草稿');
+            button.setText('发布到语雀');
         })
 
         postBtn. onclick= async() => {
@@ -102,4 +99,5 @@ export class NotePreview extends ItemView {
 
         this.buildToolbar(this.mainDiv);
     }
+
 }

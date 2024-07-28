@@ -1,10 +1,10 @@
 import {
   App,
-  Editor,
   TFile,
   FileSystemAdapter,
-  MarkdownView,
   Notice,
+  Modal, 
+  Setting
 } from "obsidian";
 import { PublishSettings } from "../publish";
 import * as YuQue from './../api/yuque';
@@ -47,7 +47,7 @@ export default class Links {
     // 删除元信息
     value = value.replace(PROPERTIES_REGEX, "");
 
-    // 删除【扩展阅读】 后的内容
+    // 删除【## 扩展阅读】 后的内容
     value = value.replace(SUFFIX_REGEX, "");
 
     // 替换 Callouts 语法
@@ -61,6 +61,15 @@ export default class Links {
 
     switch (action) {
       case ACTION_PUBLISH:
+        const doc = await YuQue.hasDoc(this.settings.yuqueSetting, title) 
+        if(!!doc) {
+          const onComfirm = async () => {
+            await YuQue.updateDoc(this.settings.yuqueSetting, title, value, doc.id);
+            new Notice("Update successfully");
+          };
+          new ConfirmModal(this.app, `【${title}】已经存在，确定要更新吗？`, onComfirm).open();
+          return;
+        }
         const { data } = await YuQue.addDoc(this.settings.yuqueSetting, title, value);
         await YuQue.updateToc(this.settings.yuqueSetting, params.uuid, data.id);
         new Notice("Published successfully");
@@ -113,5 +122,46 @@ export default class Links {
 
   private getActiveFile(): TFile {
     return this.app.workspace.getActiveFile() || null;
+  }
+}
+
+
+export class ConfirmModal extends Modal {
+  title: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+
+  constructor(app: App, title:string, onConfirm: () => void, onCancel?: () => void) {
+    super(app);
+    this.title = title;
+    this.onConfirm = onConfirm;
+    this.onCancel = onCancel;
+  }
+
+  onOpen() {
+    const { contentEl } = this;
+
+    contentEl.createEl("h1", { text: this.title });
+
+    new Setting(contentEl)
+    .addButton((btn) =>
+      btn
+        .setButtonText("取消")
+        .onClick(() => {
+          this.close();
+          this.onCancel();
+        }))
+    .addButton((btn) =>
+      btn
+        .setButtonText("确定")
+        .onClick(() => {
+          this.close();
+          this.onConfirm();
+        }));
+  }
+
+  onClose() {
+    let { contentEl } = this;
+    contentEl.empty();
   }
 }

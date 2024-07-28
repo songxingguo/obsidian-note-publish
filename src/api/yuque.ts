@@ -17,7 +17,7 @@ export interface YuQueSetting {
 export async function addDoc(
   setting: YuQueSetting,
   title: string,
-  data: string
+  conent: string
 ) {
   try {
     const url = `https://www.yuque.com/api/v2/repos/${setting.bookSlug}/docs`;
@@ -25,11 +25,48 @@ export async function addDoc(
       title,
       public: setting.public ? 1 : 0,
       format: "markdown",
-      body: data,
+      body: conent,
     };
     const res = await requestUrl({
       url,
       method: "POST",
+      throw: false,
+      contentType: "application/json",
+      headers: {
+        "X-Auth-Token": setting.token,
+      },
+      body: JSON.stringify(body),
+    });
+    return res.json;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+/**
+ * 检查给定的标题在语雀目录中是否存在
+ * @param setting - 包含必要信息的配置对象
+ * @param title - 要检查是否存在的文档标题
+ * @returns 如果找到具有给定标题的文档，则返回 true，否则返回 false
+ */
+export async function hasDoc(setting: YuQueSetting, title: string) {
+  const { data } = await getToc(setting);
+  const doc = data.find((item: any) => item.title === title);
+  return doc;
+}
+
+export async function updateDoc(setting: YuQueSetting,  title: string, conent: string, bookId:string) {
+  try {
+    const url = `https://www.yuque.com/api/v2/repos/${setting.bookSlug}/docs/${bookId}`;
+    const body = {
+      title,
+      public: setting.public ? 1 : 0,
+      format: "markdown",
+      body: conent,
+    };
+    const res = await requestUrl({
+      url,
+      method: "PUT",
       throw: false,
       contentType: "application/json",
       headers: {
