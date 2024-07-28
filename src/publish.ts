@@ -13,7 +13,7 @@ import PublishSettingTab from "./ui/publishSettingTab";
 import { OssSetting } from "./uploader/oss/ossUploader";
 import { ImagekitSetting } from "./uploader/imagekit/imagekitUploader";
 import * as YuQue from "./api/yuque";
-import { NotePreview, VIEW_TYPE_NOTE_PREVIEW } from './ui/notepreview';
+import { NotePreview, VIEW_TYPE_NOTE_PREVIEW } from './ui/notePreview';
 export interface PublishSettings {
   imageAltText: boolean;
   replaceOriginalDoc: boolean;
