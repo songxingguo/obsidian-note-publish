@@ -10,19 +10,9 @@ export class NotePreview extends ItemView {
     settings: PublishSettings;
     mainDiv: HTMLDivElement;
     toolbar: HTMLDivElement;
-    renderDiv: HTMLDivElement;
-    articleDiv: HTMLDivElement;
     styleEl: HTMLElement;
-    coverEl: HTMLInputElement;
-    useDefaultCover: HTMLInputElement;
-    useLocalCover: HTMLInputElement;
-    msgView: HTMLDivElement;
-    listeners: EventRef[];
     container: Element;
-    articleHTML: string;
     title: string;
-    currentTheme: string;
-    currentHighlight: string;
     currentUuid: string;
     yuqueProcessor: YuqueProcessor;
     constructor(leaf: WorkspaceLeaf,  settings: PublishSettings, yuqueProcessor:YuqueProcessor) {
@@ -49,48 +39,6 @@ export class NotePreview extends ItemView {
     }
 
     async onClose() {
-        // this.listeners.forEach(listener => this.workspace.offref(listener));
-    }
-
-
-    getArticleSection() {
-        return this.articleDiv.querySelector('#article-section') as HTMLElement;
-    }
-
-    getArticleContent() {
-        const content = this.articleDiv.innerHTML;
-        return content;
-    }
-
-    buildMsgView(parent: HTMLDivElement) {
-        this.msgView = parent.createDiv({ cls: 'msg-view' });
-        const title = this.msgView.createDiv({ cls: 'msg-title' });
-        title.id = 'msg-title';
-        title.innerText = '加载中...';
-        const okBtn = this.msgView.createEl('button', { cls: 'msg-ok-btn' }, async (button) => {
-            
-        });
-        okBtn.id = 'msg-ok-btn';
-        okBtn.innerText = '确定';
-        okBtn.onclick = async () => {
-            this.msgView.setAttr('style', 'display: none;');
-        }
-    }
-
-    showLoading(msg: string) {
-        const title = this.msgView.querySelector('#msg-title') as HTMLElement;
-        title!.innerText = msg;
-        const btn = this.msgView.querySelector('#msg-ok-btn') as HTMLElement;
-        btn.setAttr('style', 'display: none;');
-        this.msgView.setAttr('style', 'display: flex;');
-    }
-
-    showMsg(msg: string) {
-        const title = this.msgView.querySelector('#msg-title') as HTMLElement;
-        title!.innerText = msg;
-        const btn = this.msgView.querySelector('#msg-ok-btn') as HTMLElement;
-        btn.setAttr('style', 'display: block;');
-        this.msgView.setAttr('style', 'display: flex;');
     }
 
    async postArticle () {
@@ -144,58 +92,6 @@ export class NotePreview extends ItemView {
         postBtn. onclick= async() => {
             await this.postArticle();
         }
-
-        // 封面
-        lineDiv = this.toolbar.createDiv({ cls: 'toolbar-line' }); 
-
-        const coverTitle = lineDiv.createDiv({ cls: 'style-label' });
-        coverTitle.innerText = '封面:';
-
-        this.useDefaultCover = lineDiv.createEl('input', { cls: 'input-style' });
-        this.useDefaultCover.setAttr('type', 'radio');
-        this.useDefaultCover.setAttr('name', 'cover');
-        this.useDefaultCover.setAttr('value', 'default');
-        this.useDefaultCover.setAttr('checked', true);
-        this.useDefaultCover.id = 'default-cover';
-        this.useDefaultCover.onchange = async () => {
-            if (this.useDefaultCover.checked) {
-                this.coverEl.setAttr('style', 'visibility:hidden;width:0px;');
-            }
-            else {
-                this.coverEl.setAttr('style', 'visibility:visible;width:180px;');
-            }
-        }
-        const defaultLable = lineDiv.createEl('label');
-        defaultLable.innerText = '默认';
-        defaultLable.setAttr('for', 'default-cover');
-
-        this.useLocalCover = lineDiv.createEl('input', { cls: 'input-style' });
-        this.useLocalCover.setAttr('type', 'radio');
-        this.useLocalCover.setAttr('name', 'cover');
-        this.useLocalCover.setAttr('value', 'local');
-        this.useLocalCover.id = 'local-cover';
-        this.useLocalCover.setAttr('style', 'margin-left:20px;');
-        this.useLocalCover.onchange = async () => {
-            if (this.useLocalCover.checked) {
-                this.coverEl.setAttr('style', 'visibility:visible;width:180px;');
-            }
-            else {
-                this.coverEl.setAttr('style', 'visibility:hidden;width:0px;');
-            }
-        }
-
-        const localLabel = lineDiv.createEl('label');
-        localLabel.setAttr('for', 'local-cover');
-        localLabel.innerText = '上传';
-
-        this.coverEl = lineDiv.createEl('input', { cls: 'upload-input' });
-        this.coverEl.setAttr('type', 'file');
-        this.coverEl.setAttr('placeholder', '封面图片');
-        this.coverEl.setAttr('accept', '.png, .jpg, .jpeg');
-        this.coverEl.setAttr('name', 'cover');
-        this.coverEl.id = 'cover-input';
-
-        this.buildMsgView(this.toolbar);
     }
 
     async buildUI() {

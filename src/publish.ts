@@ -74,7 +74,7 @@ export default class ObsidianPublish extends Plugin {
 			(leaf) => new NotePreview(leaf, this.settings,  this.yuqueProcessor)
 		);
     
-    const ribbonIconEl = this.addRibbonIcon('clipboard-paste', '复制到公众号', (evt: MouseEvent) => {
+    const ribbonIconEl = this.addRibbonIcon('clipboard-paste', '笔记预览', (evt: MouseEvent) => {
 			this.activateView();
 		});
     ribbonIconEl.addClass('note-to-mp-plugin-ribbon-class');
