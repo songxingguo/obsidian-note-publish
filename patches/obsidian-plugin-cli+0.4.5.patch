@@ -1,0 +1,49 @@
+diff --git a/node_modules/obsidian-plugin-cli/lib/commands/build.js b/node_modules/obsidian-plugin-cli/lib/commands/build.js
+index b0d84fd..bdd553a 100644
+--- a/node_modules/obsidian-plugin-cli/lib/commands/build.js
++++ b/node_modules/obsidian-plugin-cli/lib/commands/build.js
+@@ -17,6 +17,7 @@ class Build extends command_1.Command {
+         }
+         await build_1.build(Object.assign({ outfile: path_1.default.join(outputDir, "main.js"), minify: true }, esbuildConfig));
+         fs_1.default.copyFileSync("./manifest.json", path_1.default.join(outputDir, "manifest.json"));
++        fs_1.default.copyFileSync("src/styles.css", path_1.default.join(outputDir, "styles.css"));
+     }
+ }
+ exports.default = Build;
+diff --git a/node_modules/obsidian-plugin-cli/lib/commands/dev.js b/node_modules/obsidian-plugin-cli/lib/commands/dev.js
+index 5997c53..a794fbc 100644
+--- a/node_modules/obsidian-plugin-cli/lib/commands/dev.js
++++ b/node_modules/obsidian-plugin-cli/lib/commands/dev.js
+@@ -12,6 +12,7 @@ const obsidian_utils_1 = require("obsidian-utils");
+ const build_1 = require("../build");
+ const config_1 = require("../config");
+ const localManifestPath = path_1.default.join(process.cwd(), "manifest.json");
++const localStylePath = path_1.default.join(process.cwd(), "src/styles.css");
+ const read = util_1.promisify(fs_1.default.readFile);
+ const mkdir = (path) => {
+     if (fs_1.default.existsSync(path))
+@@ -114,9 +115,11 @@ class Dev extends command_1.Command {
+         }
+         const pluginPath = path_1.default.join(vaultPath, ".obsidian", "plugins", manifest.id);
+         const pluginManifestPath = path_1.default.join(pluginPath, "manifest.json");
++        const pluginStylePath = path_1.default.join(pluginPath, "styles.css");
+         const copyConfig = () => {
+             mkdir(pluginPath);
+             fs_1.default.copyFileSync(localManifestPath, pluginManifestPath);
++            fs_1.default.copyFileSync(localStylePath, pluginStylePath);
+         };
+         copyConfig();
+         if (!(await obsidian_utils_1.isPluginInstalled("hot-reload", vaultPath)) && !noPrompts) {
+@@ -138,6 +141,12 @@ class Dev extends command_1.Command {
+                 copyConfig();
+             }
+         });
++        fs_1.default.watch(localStylePath, (eventType) => {
++            if (eventType === "change") {
++                this.log("Styles file changed, copying it to your vault");
++                copyConfig();
++            }
++        });
+         await build_1.build(Object.assign({ outfile: path_1.default.join(pluginPath, "main.js"), watch: true }, esbuildConfig));
+     }
+ }
