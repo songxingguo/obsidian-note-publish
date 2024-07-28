@@ -23,7 +23,9 @@ jobs:
           npm run build
 
       - name: Show Dir
-        run: ls
+        run: |
+          cd dist
+          ls
 
       - name: Create release
         env:

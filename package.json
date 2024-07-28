@@ -7,7 +7,8 @@
   "license": "MIT",
   "scripts": {
     "build": "obsidian-plugin build src/publish.ts",
-    "dev": "obsidian-plugin dev src/publish.ts"
+    "dev": "obsidian-plugin dev src/publish.ts",
+    "postinstall": "patch-package"
   },
   "devDependencies": {
     "@types/node": "^14.14.2",
