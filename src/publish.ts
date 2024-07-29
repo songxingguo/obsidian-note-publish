@@ -30,7 +30,7 @@ export interface PublishSettings {
 
 const DEFAULT_SETTINGS: PublishSettings = {
   imageAltText: true,
-  replaceOriginalDoc: false,
+  replaceOriginalDoc: true,
   deleteAttachments: true,
   ignoreProperties: true,
   attachmentLocation: ".",
