@@ -106,7 +106,16 @@ export default class PublishSettingTab extends PluginSettingTab {
             (value) => (this.plugin.settings.yuqueSetting.public = value)
           )
       );
+  
+    new Setting(imageStoreTypeDiv).setName("Blog").setHeading();
 
+    new Setting(imageStoreTypeDiv).setName("Directory").addText((text) =>
+      text
+        .setPlaceholder("Enter your Project Directory")
+        .setValue(this.plugin.settings.blogSetting.directory)
+        .onChange((value) => (this.plugin.settings.blogSetting.directory = value))
+    );
+    
     new Setting(imageStoreTypeDiv).setName("Image Store").setHeading();
 
     // Image Store

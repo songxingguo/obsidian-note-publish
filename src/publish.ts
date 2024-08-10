@@ -4,6 +4,7 @@ import ImageTagProcessor, {
   ACTION_PUBLISH,
 } from "./uploader/imageTagProcessor";
 import YuqueProcessor from "./transformers/yuqueProcessor";
+import BlogProcessor from "./transformers/blogProcessor";
 import ImageUploader from "./uploader/imageUploader";
 import { ImgurAnonymousSetting } from "./uploader/imgur/imgurAnonymousUploader";
 import { IMGUR_PLUGIN_CLIENT_ID } from "./uploader/imgur/constants";
@@ -26,6 +27,10 @@ export interface PublishSettings {
   ossSetting: OssSetting;
   imagekitSetting: ImagekitSetting;
   yuqueSetting: YuQue.YuQueSetting;
+  blogSetting: BlogSetting;
+}
+interface BlogSetting {
+  directory: string
 }
 
 const DEFAULT_SETTINGS: PublishSettings = {
@@ -57,12 +62,16 @@ const DEFAULT_SETTINGS: PublishSettings = {
     bookSlug: "",
     public: true,
   },
+  blogSetting :{
+    directory: ''
+  }
 };
 export default class ObsidianPublish extends Plugin {
   settings: PublishSettings;
   imageTagProcessor: ImageTagProcessor;
   imageUploader: ImageUploader;
   yuqueProcessor: YuqueProcessor;
+  blogProcessor: BlogProcessor;
 
   async onload() {
     await this.loadSettings();
@@ -71,7 +80,7 @@ export default class ObsidianPublish extends Plugin {
     this.addStatusBarItem().setText("Status Bar Text");
     this.registerView(
 			VIEW_TYPE_NOTE_PREVIEW,
-			(leaf) => new NotePreview(leaf, this.settings,  this.yuqueProcessor)
+			(leaf) => new NotePreview(leaf, this.settings,  this.yuqueProcessor, this.blogProcessor)
 		);
     
     const ribbonIconEl = this.addRibbonIcon('clipboard-paste', '笔记预览', (evt: MouseEvent) => {
@@ -132,6 +141,7 @@ export default class ObsidianPublish extends Plugin {
   setupTransformer(): void {
     try {
       this.yuqueProcessor = new YuqueProcessor(this.app, this.settings);
+      this.blogProcessor = new BlogProcessor(this.app, this.settings);
     } catch (e) {
       console.log(`Failed to setup image uploader: ${e}`);
     }
