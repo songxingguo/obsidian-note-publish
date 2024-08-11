@@ -47,6 +47,9 @@ export default class BlogProcessor {
     // 添加博客元信息
     value = this.addBlogMeta(value);
 
+    // 添加目录
+    value = this.addBlogTOC(value);
+
     // 删除【## 扩展阅读】 后的内容
     value = value.replace(SUFFIX_REGEX, "");
 
@@ -122,7 +125,7 @@ export default class BlogProcessor {
   private getActiveFile(): TFile {
     return this.app.workspace.getActiveFile() || null;
   }
-  private addBlogMeta (value) {
+  private addBlogMeta (value: string) {
     const title  = this.getActiveFile().basename; 
     const path = this.getActiveFile().path;
     const obsidianUrl = `obsidian://open?vault=content&file=${encodeURIComponent(path)}`
@@ -136,8 +139,13 @@ Obsidian地址: ${obsidianUrl}
     blogMeta = `---\n${blogMeta}${blogMetaTpl}---\n`
     return value.replace(PROPERTIES_REGEX, blogMeta);
   }
-}
 
+  private addBlogTOC (value: string) {
+    const match = value.match(PROPERTIES_REGEX);
+    const toc = `${match[0]}## 目录\n`
+    return value.replace(PROPERTIES_REGEX, toc);
+  }
+}
 
 export class ConfirmModal extends Modal {
   title: string;
