@@ -1,7 +1,7 @@
 import { ItemView, Workspace, WorkspaceLeaf } from 'obsidian';
 import { PublishSettings } from '../publish';
 import YuqueProcessor, {ACTION_PUBLISH, ACTION_COPY} from "./../transformers/yuqueProcessor";
-import BlogProcessor from "./../transformers/blogProcessor";
+import BlogProcessor, { ACTION_CREATE } from "./../transformers/blogProcessor";
 import * as YuQue from './../api/yuque';
 
 export const VIEW_TYPE_NOTE_PREVIEW = 'note-preview';
@@ -64,6 +64,10 @@ export class NotePreview extends ItemView {
       await this.blogProcessor.process(ACTION_PUBLISH);
     }
 
+    async ceatedBlogArticle () {
+      await this.blogProcessor.process(ACTION_CREATE);
+    }
+
     async buildToolbar(parent: HTMLDivElement) {
         this.toolbar = parent.createDiv({ cls: 'preview-toolbar' });
 
@@ -100,6 +104,14 @@ export class NotePreview extends ItemView {
         this.toolbar = parent.createDiv({ cls: 'preview-toolbar' });
 
         let blogLineDiv = this.toolbar.createDiv({ cls: 'toolbar-line' });
+
+        const createBlogBtn = blogLineDiv.createEl('button', { cls: 'copy-button' }, async (button) => {
+          button.setText('创建/更新博客');
+        })
+
+        createBlogBtn.onclick= async() => {
+          await this.ceatedBlogArticle();
+        }
 
         const postBtnToBlog = blogLineDiv.createEl('button', { cls: 'copy-button' }, async (button) => {
           button.setText('发布到博客');

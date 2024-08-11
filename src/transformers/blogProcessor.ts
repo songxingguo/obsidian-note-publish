@@ -8,6 +8,7 @@ import {
 } from "obsidian";
 import fs from 'fs';
 import { simpleGit } from 'simple-git';
+import frontMatter from "front-matter";
 import { PublishSettings } from "../publish";
 
 const MD_REGEX = /\[(.*?)\]\((.*?)\)/g;
@@ -27,6 +28,7 @@ interface DOC {
   uuid: string;
 }
 
+export const ACTION_CREATE: string = "CREATE";
 export const ACTION_PUBLISH: string = "PUBLISH";
 export const ACTION_COPY: string = "COPY";
 export default class BlogProcessor {
@@ -60,12 +62,22 @@ export default class BlogProcessor {
       value = value.replaceAll(link.source, link.name);
     }
 
-    const title  = this.getActiveFile().basename;
+    const directory = this.settings.blogSetting.directory;
 
     switch (action) {
+      case ACTION_CREATE:
+        const path  = this.getMetaValue(value, 'path');
+        const categories  = this.getMetaValue(value, 'categories');
+        const description  = this.getMetaValue(value, 'description');
+        if(!path || !categories || !description) {
+         new Notice("请填写博客元信息：categories、description、path");
+         return
+        }
+        fs.writeFileSync(`${directory}/tech/${path}.md`, value);
+        new Notice("Update successfully");
+        break;
       case ACTION_PUBLISH:
-        const directory = this.settings.blogSetting.directory;
-        fs.writeFileSync(`${directory}/tech/${title}.md`, value);
+        const title  = this.getMetaValue(value, 'title');
         simpleGit(directory, {
           progress({ method, stage, progress }) {
             console.log(`git.${method} ${stage} stage ${progress}% complete`);
@@ -73,7 +85,7 @@ export default class BlogProcessor {
         })
         .add('./*')
         .commit(`feat: 发布${title}`)
-        .push(['-u', 'origin', 'master'], () => console.log('done'));;
+        .push(['-u', 'origin', 'main'], () => console.log('done'));;
         new Notice("Published successfully");
         break;
       case ACTION_COPY:
@@ -129,9 +141,7 @@ export default class BlogProcessor {
     const title  = this.getActiveFile().basename; 
     const path = this.getActiveFile().path;
     const obsidianUrl = `obsidian://open?vault=content&file=${encodeURIComponent(path)}`
-    const blogMetaTpl = `title: ${title} 
-description: 
-categories: 
+    const blogMetaTpl = `title: ${title}
 Obsidian地址: ${obsidianUrl}
 `;
     const match = value.match(PROPERTIES_REGEX);
@@ -144,6 +154,11 @@ Obsidian地址: ${obsidianUrl}
     const match = value.match(PROPERTIES_REGEX);
     const toc = `${match[0]}## 目录\n`
     return value.replace(PROPERTIES_REGEX, toc);
+  }
+
+  getMetaValue(value:any, key: string) {
+    const metadata = frontMatter(value);
+    return key && metadata.attributes[key] || '';
   }
 }
 
