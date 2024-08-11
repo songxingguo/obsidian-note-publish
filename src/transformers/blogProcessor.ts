@@ -29,7 +29,6 @@ interface DOC {
 
 export const ACTION_PUBLISH: string = "PUBLISH";
 export const ACTION_COPY: string = "COPY";
-
 export default class BlogProcessor {
   private app: App;
   private settings: PublishSettings;
@@ -45,8 +44,8 @@ export default class BlogProcessor {
     let value = await this.getValue();
     const links = this.getLinks(value);
 
-    // 删除元信息
-    value = value.replace(PROPERTIES_REGEX, "");
+    // 添加博客元信息
+    value = this.addBlogMeta(value);
 
     // 删除【## 扩展阅读】 后的内容
     value = value.replace(SUFFIX_REGEX, "");
@@ -122,6 +121,20 @@ export default class BlogProcessor {
 
   private getActiveFile(): TFile {
     return this.app.workspace.getActiveFile() || null;
+  }
+  private addBlogMeta (value) {
+    const title  = this.getActiveFile().basename; 
+    const path = this.getActiveFile().path;
+    const obsidianUrl = `obsidian://open?vault=content&file=${encodeURIComponent(path)}`
+    const blogMetaTpl = `title: ${title} 
+description: 
+categories: 
+Obsidian地址: ${obsidianUrl}
+`;
+    const match = value.match(PROPERTIES_REGEX);
+    let blogMeta = match[0].trim().replaceAll('---\n', '').replaceAll('---', '');
+    blogMeta = `---\n${blogMeta}${blogMetaTpl}---\n`
+    return value.replace(PROPERTIES_REGEX, blogMeta);
   }
 }
 
