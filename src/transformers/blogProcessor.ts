@@ -73,7 +73,7 @@ export default class BlogProcessor {
          new Notice("请填写博客元信息：categories、description、path");
          return
         }
-        fs.writeFileSync(`${directory}/tech/${path}.md`, value);
+        fs.writeFileSync(`${directory}/${path}.md`, value);
         new Notice("Update successfully");
         break;
       case ACTION_PUBLISH:
