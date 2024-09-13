@@ -51,6 +51,10 @@ export class NotePreview extends ItemView {
       await this.yuqueProcessor.process(ACTION_COPY, {uuid: this.currentUuid});
     }
 
+    async copyBlogArticle () {
+      await this.blogProcessor.process(ACTION_COPY, {uuid: this.currentUuid});
+    }
+
     addSection (el:any, options:Array<any>, value?: any) {
         for (let s of options) {
           const op = el.createEl('option');
@@ -104,6 +108,14 @@ export class NotePreview extends ItemView {
         this.toolbar = parent.createDiv({ cls: 'preview-toolbar' });
 
         let blogLineDiv = this.toolbar.createDiv({ cls: 'toolbar-line' });
+
+        const blogCopyBtn = blogLineDiv.createEl('button', { cls: 'copy-button' }, async (button) => {
+          button.setText('复制');
+        })
+
+        blogCopyBtn.onclick = async() => {
+          await this.copyBlogArticle();
+        }
 
         const createBlogBtn = blogLineDiv.createEl('button', { cls: 'copy-button' }, async (button) => {
           button.setText('创建/更新博客');

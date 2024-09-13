@@ -13,6 +13,7 @@ import { PublishSettings } from "../publish";
 
 const MD_REGEX = /\[(.*?)\]\((.*?)\)/g;
 const WIKI_REGEX = /\[\[(.*)\]\]/g;
+const PREFIX_REGEX = /## 写在前面\s*(.*)$/s;
 const SUFFIX_REGEX = /## 扩展阅读\s*(.*)$/s;
 const PROPERTIES_REGEX = /^---[\s\S]+?---\n/;
 const CALLOUTS_REGEX = />\s*\[!\w+]\s*(.*)/gm;
@@ -45,12 +46,23 @@ export default class BlogProcessor {
   public async process(action: string, params?: DOC): Promise<void> {
     let value = await this.getValue();
     const links = this.getLinks(value);
+    const path  = this.getMetaValue(value, 'path');
+    const categories  = this.getMetaValue(value, 'categories');
+    const description  = this.getMetaValue(value, 'description');
+
+    if(!path || !categories || !description) {
+     new Notice("请填写博客元信息：categories、description、path");
+     return
+    }
 
     // 添加博客元信息
     value = this.addBlogMeta(value);
 
     // 添加目录
     value = this.addBlogTOC(value);
+
+    // 添加原文地址
+    value = this.addOriginInfo(value, path)
 
     // 删除【## 扩展阅读】 后的内容
     value = value.replace(SUFFIX_REGEX, "");
@@ -66,13 +78,6 @@ export default class BlogProcessor {
 
     switch (action) {
       case ACTION_CREATE:
-        const path  = this.getMetaValue(value, 'path');
-        const categories  = this.getMetaValue(value, 'categories');
-        const description  = this.getMetaValue(value, 'description');
-        if(!path || !categories || !description) {
-         new Notice("请填写博客元信息：categories、description、path");
-         return
-        }
         fs.writeFileSync(`${directory}/${path}.md`, value);
         new Notice("Update successfully");
         break;
@@ -154,6 +159,12 @@ Obsidian地址: ${obsidianUrl}
     const match = value.match(PROPERTIES_REGEX);
     const toc = `${match[0]}## 目录\n`
     return value.replace(PROPERTIES_REGEX, toc);
+  }
+
+  private addOriginInfo(value:any, path: string) {
+    const match = value.match(PREFIX_REGEX);
+    const origin = `${match[0]}\n> 点击链接查看[原文](https://blog.songxingguo.com/posts/${path}/) ， 订阅 [SSR](https://blog.songxingguo.com/atom.xml) 获得最新动态。\n`
+    return value.replace(PROPERTIES_REGEX, origin);
   }
 
   getMetaValue(value:any, key: string) {
