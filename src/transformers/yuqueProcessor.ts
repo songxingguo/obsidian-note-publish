@@ -1,26 +1,13 @@
 import {
   App,
-  TFile,
-  FileSystemAdapter,
   Notice,
-  Modal, 
-  Setting
 } from "obsidian";
 import { PublishSettings } from "../publish";
 import * as YuQue from './../api/yuque';
+import Processor from "./processor";
+import { ConfirmModal } from "../ui/ui";
 
-const MD_REGEX = /\[(.*?)\]\((.*?)\)/g;
-const WIKI_REGEX = /\[\[(.*)\]\]/g;
-const SUFFIX_REGEX = /## 扩展阅读\s*(.*)$/s;
 const PROPERTIES_REGEX = /^---[\s\S]+?---\n/;
-const CALLOUTS_REGEX = />\s*\[!\w+]\s*(.*)/gm;
-
-interface Link {
-  name: string;
-  path: string;
-  fullPath: string;
-  source: string;
-}
 
 interface DOC {
   uuid: string;
@@ -29,139 +16,45 @@ interface DOC {
 export const ACTION_PUBLISH: string = "PUBLISH";
 export const ACTION_COPY: string = "COPY";
 
-export default class Links {
-  private app: App;
-  private settings: PublishSettings;
-  private adapter: FileSystemAdapter;
+export default class YuqueProcessor extends Processor{
 
   constructor(app: App, settings: PublishSettings) {
-    this.app = app;
-    this.adapter = this.app.vault.adapter as FileSystemAdapter;
-    this.settings = settings;
+    super(app, settings);
   }
 
   public async process(action: string, params?: DOC): Promise<void> {
-    let value = await this.getValue();
-    const links = this.getLinks(value);
+    if(await this.validate()) return;
 
+    super.process(action, params);
+
+    let value = await this.getValue();
     // 删除元信息
     value = value.replace(PROPERTIES_REGEX, "");
 
-    // 删除【## 扩展阅读】 后的内容
-    value = value.replace(SUFFIX_REGEX, "");
-
-    // 替换 Callouts 语法
-    value = value.replaceAll(CALLOUTS_REGEX, "");
-
-    for (const link of links) {
-      value = value.replaceAll(link.source, link.name);
+    const actionMap = { 
+      [ACTION_PUBLISH]: ():any => {
+        this.publish(value, params);
+      },
+      [ACTION_COPY]: ():any => {
+        this.copy(value);
+      },
     }
+    actionMap[action] ? actionMap[action]() : new Notice("Invalid action!");
+  }
 
+  private async publish(value: string, params: DOC) {
     const title  = this.getActiveFile().basename;
-
-    switch (action) {
-      case ACTION_PUBLISH:
-        const doc = await YuQue.hasDoc(this.settings.yuqueSetting, title) 
-        if(!!doc) {
-          const onComfirm = async () => {
-            await YuQue.updateDoc(this.settings.yuqueSetting, title, value, doc.id);
-            new Notice("Update successfully");
-          };
-          new ConfirmModal(this.app, `【${title}】已经存在，确定要更新吗？`, onComfirm).open();
-          return;
-        }
-        const { data } = await YuQue.addDoc(this.settings.yuqueSetting, title, value);
-        await YuQue.updateToc(this.settings.yuqueSetting, params.uuid, data.id);
-        new Notice("Published successfully");
-        break;
-      case ACTION_COPY:
-        navigator.clipboard.writeText(value);
-        new Notice("Copied to clipboard");
-        break;
-      default:
-        throw new Error("invalid action!");
+    const doc = await YuQue.hasDoc(this.settings.yuqueSetting, title) 
+    if(!!doc) {
+      const onComfirm = async () => {
+        await YuQue.updateDoc(this.settings.yuqueSetting, title, value, doc.id);
+        new Notice("Update successfully");
+      };
+      new ConfirmModal(this.app, `【${title}】已经存在，确定要更新吗？`, onComfirm).open();
+      return;
     }
-  }
-
-  private getLinks(value: string): Link[] {
-    const links: Link[] = [];
-    const wikiMatches = value.matchAll(WIKI_REGEX);
-    const mdMatches = value.matchAll(MD_REGEX);
-    for (const match of wikiMatches) {
-      const name = match[1];
-      var path_name = name;
-      if (name.endsWith(".excalidraw")) {
-        path_name = name + ".png";
-      }
-      links.push({
-        name: name,
-        path: this.settings.attachmentLocation + "/" + path_name,
-        source: match[0],
-        fullPath: "",
-      });
-    }
-    for (const match of mdMatches) {
-      if (match[2].startsWith("http://") || match[2].startsWith("https://")) {
-        continue;
-      }
-      const decodedPath = decodeURI(match[2]);
-      links.push({
-        name: decodedPath,
-        path: decodedPath,
-        source: match[0],
-        fullPath: "",
-      });
-    }
-    return links;
-  }
-
-  private async getValue(): Promise<string> {
-    const file = this.getActiveFile();
-    return await this.app.vault.adapter.read(file.path);
-  }
-
-  private getActiveFile(): TFile {
-    return this.app.workspace.getActiveFile() || null;
-  }
-}
-
-
-export class ConfirmModal extends Modal {
-  title: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-
-  constructor(app: App, title:string, onConfirm: () => void, onCancel?: () => void) {
-    super(app);
-    this.title = title;
-    this.onConfirm = onConfirm;
-    this.onCancel = onCancel;
-  }
-
-  onOpen() {
-    const { contentEl } = this;
-
-    contentEl.createEl("h1", { text: this.title });
-
-    new Setting(contentEl)
-    .addButton((btn) =>
-      btn
-        .setButtonText("取消")
-        .onClick(() => {
-          this.close();
-          this.onCancel();
-        }))
-    .addButton((btn) =>
-      btn
-        .setButtonText("确定")
-        .onClick(() => {
-          this.close();
-          this.onConfirm();
-        }));
-  }
-
-  onClose() {
-    let { contentEl } = this;
-    contentEl.empty();
+    const { data } = await YuQue.addDoc(this.settings.yuqueSetting, title, value);
+    await YuQue.updateToc(this.settings.yuqueSetting, params.uuid, data.id);
+    new Notice("Published successfully");
   }
 }
