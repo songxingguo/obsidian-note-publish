@@ -44,16 +44,17 @@ export default class YuqueProcessor extends Processor{
 
   private async publish(value: string, params: DOC) {
     const title  = this.getActiveFile().basename;
-    const doc = await YuQue.hasDoc(this.settings.yuqueSetting, title) 
+    const slug = this.getMetaValue(await this.getValue(), 'path').split('/')[1];
+    const doc = await YuQue.hasDoc(this.settings.yuqueSetting, slug) 
     if(!!doc) {
       const onComfirm = async () => {
-        await YuQue.updateDoc(this.settings.yuqueSetting, title, value, doc.id);
+        await YuQue.updateDoc(this.settings.yuqueSetting, title, value, slug);
         new Notice("Update successfully");
       };
       new ConfirmModal(this.app, `【${title}】已经存在，确定要更新吗？`, onComfirm).open();
       return;
     }
-    const { data } = await YuQue.addDoc(this.settings.yuqueSetting, title, value);
+    const { data } = await YuQue.addDoc(this.settings.yuqueSetting, title, value, slug);
     await YuQue.updateToc(this.settings.yuqueSetting, params.uuid, data.id);
     new Notice("Published successfully");
   }

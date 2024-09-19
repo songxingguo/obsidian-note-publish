@@ -17,7 +17,8 @@ export interface YuQueSetting {
 export async function addDoc(
   setting: YuQueSetting,
   title: string,
-  conent: string
+  conent: string,
+  slug: string
 ) {
   try {
     const url = `https://www.yuque.com/api/v2/repos/${setting.bookSlug}/docs`;
@@ -26,6 +27,7 @@ export async function addDoc(
       public: setting.public ? 1 : 0,
       format: "markdown",
       body: conent,
+      slug,
     };
     const res = await requestUrl({
       url,
@@ -49,15 +51,15 @@ export async function addDoc(
  * @param title - 要检查是否存在的文档标题
  * @returns 如果找到具有给定标题的文档，则返回 true，否则返回 false
  */
-export async function hasDoc(setting: YuQueSetting, title: string) {
+export async function hasDoc(setting: YuQueSetting, slug: string) {
   const { data } = await getToc(setting);
-  const doc = data.find((item: any) => item.title === title);
+  const doc = data.find((item: any) => item.slug === slug);
   return doc;
 }
 
-export async function updateDoc(setting: YuQueSetting,  title: string, conent: string, bookId:string) {
+export async function updateDoc(setting: YuQueSetting,  title: string, conent: string, slug:string) {
   try {
-    const url = `https://www.yuque.com/api/v2/repos/${setting.bookSlug}/docs/${bookId}`;
+    const url = `https://www.yuque.com/api/v2/repos/${setting.bookSlug}/docs/${slug}`;
     const body = {
       title,
       public: setting.public ? 1 : 0,
