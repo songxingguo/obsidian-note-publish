@@ -5,6 +5,10 @@ import {
 } from "obsidian";
 import { PublishSettings } from "../publish";
 import frontMatter from "front-matter";
+import remarkParse from 'remark-parse'
+import remarkStringify from 'remark-stringify'
+import {unified} from 'unified'
+import {visit} from 'unist-util-visit'
 
 const MD_REGEX = /\[(.*?)\]\((.*?)\)/g;
 const WIKI_REGEX = /\[\[(.*)\]\]/g;
@@ -36,6 +40,14 @@ export default class Processor {
     public async process(action: string, params?: DOC): Promise<void> {
         let value = await this.getValue();
 
+        const file = await unified()
+          .use(remarkParse)
+          .use(this.myRemarkPluginToIncreaseHeadings)
+          .use(remarkStringify)
+          .process(value)
+
+        value = String(file)
+
         const links = this.getLinks(value);
       
         // 添加原文地址
@@ -50,6 +62,20 @@ export default class Processor {
         for (const link of links) {
           value = value.replaceAll(link.source, link.name);
         }
+    }
+
+    protected myRemarkPluginToIncreaseHeadings() {
+      /**
+       * @param {Root} tree
+       */
+      return function (tree) {
+        visit(tree, function (node) {
+          if (node.type === 'heading') {
+            debugger
+            node.depth++
+          }
+        })
+      }
     }
 
     protected async validate() {
