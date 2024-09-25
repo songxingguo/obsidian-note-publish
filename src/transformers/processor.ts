@@ -5,10 +5,9 @@ import {
 } from "obsidian";
 import { PublishSettings } from "../publish";
 import frontMatter from "front-matter";
-import remarkParse from 'remark-parse'
-import remarkStringify from 'remark-stringify'
-import {unified} from 'unified'
-import {visit} from 'unist-util-visit'
+import {fromMarkdown} from 'mdast-util-from-markdown'
+import {headingRange} from 'mdast-util-heading-range'
+import {toMarkdown} from 'mdast-util-to-markdown'
 
 const MD_REGEX = /\[(.*?)\]\((.*?)\)/g;
 const WIKI_REGEX = /\[\[(.*)\]\]/g;
@@ -39,14 +38,27 @@ export default class Processor {
 
     public async process(action: string, params?: DOC): Promise<void> {
         let value = await this.getValue();
+        
+        const tree = fromMarkdown(value)
+        
+        console.log(tree)
 
-        const file = await unified()
-          .use(remarkParse)
-          .use(this.myRemarkPluginToIncreaseHeadings)
-          .use(remarkStringify)
-          .process(value)
+        // findAndReplace(tree, [
+        //   [/and/gi, 'or'],
+        // ])
 
-        value = String(file)
+        headingRange(tree, '写在前面', function (start, nodes, end) {
+          debugger
+          return [
+            start,
+            {type: 'paragraph', children: [{type: 'text', value: 'Qux.'}]},
+            end
+          ]
+        })
+
+        value = toMarkdown(tree);
+
+        debugger
 
         const links = this.getLinks(value);
       
