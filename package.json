@@ -5,6 +5,7 @@
   "author": "songxingguo",
   "main": "main.js",
   "license": "MIT",
+  "type": "module",
   "scripts": {
     "build": "obsidian-plugin build src/publish.ts",
     "dev": "obsidian-plugin dev src/publish.ts",
