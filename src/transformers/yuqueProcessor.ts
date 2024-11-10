@@ -3,8 +3,8 @@ import {
   Notice,
 } from "obsidian";
 import { PublishSettings } from "../publish";
-import * as YuQue from './../api/yuque';
-import Processor from "./processor";
+import * as YuQue from '../api/yuque';
+import Processor from "./Processor";
 import { ConfirmModal } from "../ui/ui";
 
 const PROPERTIES_REGEX = /^---[\s\S]+?---\n/;

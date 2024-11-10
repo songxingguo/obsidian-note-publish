@@ -3,8 +3,8 @@ import { Notice, WorkspaceLeaf, Plugin } from "obsidian";
 import ImageTagProcessor, {
   ACTION_PUBLISH,
 } from "./uploader/imageTagProcessor";
-import YuqueProcessor from "./transformers/yuqueProcessor";
-import BlogProcessor from "./transformers/blogProcessor";
+import YuqueProcessor from "./transformers/YuqueProcessor";
+import BlogProcessor from "./transformers/BlogProcessor";
 import ImageUploader from "./uploader/imageUploader";
 import { ImgurAnonymousSetting } from "./uploader/imgur/imgurAnonymousUploader";
 import { IMGUR_PLUGIN_CLIENT_ID } from "./uploader/imgur/constants";

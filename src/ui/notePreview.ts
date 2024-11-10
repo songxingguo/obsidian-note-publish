@@ -1,7 +1,7 @@
 import { ItemView, Workspace, WorkspaceLeaf } from 'obsidian';
 import { PublishSettings } from '../publish';
-import YuqueProcessor, {ACTION_PUBLISH, ACTION_COPY} from "./../transformers/yuqueProcessor";
-import BlogProcessor, { ACTION_CREATE } from "./../transformers/blogProcessor";
+import YuqueProcessor, {ACTION_PUBLISH, ACTION_COPY} from "../transformers/YuqueProcessor";
+import BlogProcessor, { ACTION_CREATE } from "../transformers/BlogProcessor";
 import * as YuQue from './../api/yuque';
 
 export const VIEW_TYPE_NOTE_PREVIEW = 'note-preview';

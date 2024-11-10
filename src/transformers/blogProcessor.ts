@@ -5,7 +5,7 @@ import {
 import fs from 'fs';
 // import { simpleGit } from 'simple-git';
 import { PublishSettings } from "../publish";
-import Processor from "./processor";
+import Processor from "./Processor";
 
 const PROPERTIES_REGEX = /^---[\s\S]+?---\n/;
 
