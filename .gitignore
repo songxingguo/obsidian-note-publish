@@ -7,3 +7,4 @@ yarn.lock
 data.json
 dist
 .idea
+main.js

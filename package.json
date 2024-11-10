@@ -6,12 +6,13 @@
   "main": "main.js",
   "license": "MIT",
   "scripts": {
-    "build": "obsidian-plugin build src/publish.ts",
-    "dev": "obsidian-plugin dev src/publish.ts",
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
     "postinstall": "patch-package"
   },
   "devDependencies": {
     "@types/node": "^14.14.2",
+    "esbuild": "^0.24.0",
     "obsidian": "obsidianmd/obsidian-api",
     "obsidian-plugin-cli": "^0.4.3",
     "patch-package": "^8.0.0",
@@ -20,6 +21,7 @@
   },
   "dependencies": {
     "ali-oss": "^6.17.1",
+    "builtin-modules": "^4.0.0",
     "front-matter": "^4.0.2",
     "imagekit": "^5.0.0",
     "proxy-agent": "^5.0.0",
