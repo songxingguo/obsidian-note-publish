@@ -1,3 +1,4 @@
+import { filter } from 'unist-util-filter';
 import {
   App,
   TFile,
@@ -8,6 +9,7 @@ import frontMatter from "front-matter";
 import { fromMarkdown } from 'mdast-util-from-markdown';
 import { toMarkdown } from 'mdast-util-to-markdown';
 import { visit } from 'unist-util-visit';
+import { u } from 'unist-builder';
 
 const MD_REGEX = /\[(.*?)\]\((.*?)\)/g;
 const WIKI_REGEX = /\[\[(.*)\]\]/g;
@@ -27,6 +29,14 @@ interface DOC {
   uuid: string;
 }
 
+const filter = (tree: any, type: string) => {
+  const nodes = [];
+  visit(tree, type, (node) => {
+    nodes.push(node);
+  });
+  return nodes;
+}
+
 export default class Processor {
     protected app: App;
     protected settings: PublishSettings;
@@ -39,18 +49,7 @@ export default class Processor {
     public async process(action: string, params?: DOC): Promise<void> {
         let value = await this.getValue();
 
-        const tree = fromMarkdown(value);
-
-        visit(tree, "heading", (node) => {
-          node.depth += 1;
-        });
-
-        value = toMarkdown(tree);
-        
         const links = this.getLinks(value);
-      
-        // 添加原文地址
-        // value = this.addOriginInfo(value, path)
 
         // 删除【## 扩展阅读】 后的内容
         value = value.replace(SUFFIX_REGEX, "");
@@ -118,10 +117,34 @@ export default class Processor {
       return this.app.workspace.getActiveFile() || null;
     }
   
-    protected addOriginInfo(value:any, path: string) {
-      const match = value.match(PREFIX_REGEX);
-      const origin = `${match[0]}\n> 点击链接查看[原文](https://blog.songxingguo.com/posts/${path}/) ， 订阅 [SSR](https://blog.songxingguo.com/atom.xml) 获得最新动态。\n`
-      return value.replace(PROPERTIES_REGEX, origin);
+    protected addOriginInfo(value: any) {
+      const path = this.getMetaValue(value, 'path');
+      const tree = fromMarkdown(value);
+      const headings = filter(tree, 'heading');
+      const headingIndex = headings.findIndex(item => item.children[0].value === '写在前面');
+      const headingName = headings[headingIndex + 1].children[0].value;
+      let insertIndex = 0;
+      visit(tree, "heading", (node, index) => {
+        if(node.children[0].value == headingName ) {
+          insertIndex = index;
+        }
+      });
+      const originInfo = u('blockquote', [
+          u('paragraph',[
+            u('text', { value: "点击链接查看"}),
+            u('link', { title: '原文', url: `https://blog.songxingguo.com/posts/${path}`}, [
+              u('text', { value: "原文"})
+            ]),
+            u('text', { value: "，订阅"}),
+            u('link', { title: 'SSR', url: "https://blog.songxingguo.com/atom.xml"}, [
+              u('text', { value: "SSR"})
+            ]),
+            u('text', { value: "。"})
+          ])
+        ]
+      )
+      tree.children.splice(insertIndex, 0, originInfo);
+      return toMarkdown(tree);
     }
   
     protected getMetaValue(value: string, key: string) {

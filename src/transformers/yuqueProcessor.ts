@@ -28,6 +28,9 @@ export default class YuqueProcessor extends Processor{
     super.process(action, params);
 
     let value = await this.getValue();
+    // 添加原文地址
+    value = this.addOriginInfo(value);
+
     // 删除元信息
     value = value.replace(PROPERTIES_REGEX, "");
 
