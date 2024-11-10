@@ -5,6 +5,9 @@ import {
 } from "obsidian";
 import { PublishSettings } from "../publish";
 import frontMatter from "front-matter";
+import { fromMarkdown } from 'mdast-util-from-markdown';
+import { toMarkdown } from 'mdast-util-to-markdown';
+import { visit } from 'unist-util-visit';
 
 const MD_REGEX = /\[(.*?)\]\((.*?)\)/g;
 const WIKI_REGEX = /\[\[(.*)\]\]/g;
@@ -36,6 +39,14 @@ export default class Processor {
     public async process(action: string, params?: DOC): Promise<void> {
         let value = await this.getValue();
 
+        const tree = fromMarkdown(value);
+
+        visit(tree, "heading", (node) => {
+          node.depth += 1;
+        });
+
+        value = toMarkdown(tree);
+        
         const links = this.getLinks(value);
       
         // 添加原文地址
