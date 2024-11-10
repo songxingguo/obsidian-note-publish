@@ -13,9 +13,6 @@ import { u } from 'unist-builder';
 
 const MD_REGEX = /\[(.*?)\]\((.*?)\)/g;
 const WIKI_REGEX = /\[\[(.*)\]\]/g;
-const PREFIX_REGEX = /## 写在前面\s*(.*)$/s;
-const PROPERTIES_REGEX = /^---[\s\S]+?---\n/;
-const SUFFIX_REGEX = /## 扩展阅读\s*(.*)$/s;
 const CALLOUTS_REGEX = />\s*\[!\w+]\s*(.*)/gm;
 
 interface Link {
@@ -40,6 +37,7 @@ const filter = (tree: any, type: string) => {
 export default class Processor {
     protected app: App;
     protected settings: PublishSettings;
+    protected value: string;
 
     constructor(app: App, settings: PublishSettings) {
       this.app = app;
@@ -47,23 +45,22 @@ export default class Processor {
     }
 
     public async process(action: string, params?: DOC): Promise<void> {
-        let value = await this.getValue();
-
-        const links = this.getLinks(value);
+        this.value = await this.getActiveFileValue();
 
         // 删除【## 扩展阅读】 后的内容
-        value = this.removeMoreReading(value);
+        this.removeMoreReading();
 
         // 替换 Callouts 语法
-        value = value.replaceAll(CALLOUTS_REGEX, "");
+        this.value = this.value.replaceAll(CALLOUTS_REGEX, "");
     
+        const links = this.getLinks(this.value);
         for (const link of links) {
-          value = value.replaceAll(link.source, link.name);
+          this.value = this.value.replaceAll(link.source, link.name);
         }
     }
 
     protected async validate() {
-      const value = await this.getValue();
+      const value = await this.getActiveFileValue();
       const path  = this.getMetaValue(value, 'path');
       const categories  = this.getMetaValue(value, 'categories');
       const description  = this.getMetaValue(value, 'description');
@@ -108,18 +105,22 @@ export default class Processor {
       return links;
     }
   
-    protected async getValue(): Promise<string> {
+    protected async getActiveFileValue(): Promise<string> {
       const file = this.getActiveFile();
       return await this.app.vault.adapter.read(file.path);
+    }
+
+    protected getValue(): string {
+      return this.value;
     }
   
     protected getActiveFile(): TFile {
       return this.app.workspace.getActiveFile() || null;
     }
   
-    protected addOriginInfo(value: any) {
-      const path = this.getMetaValue(value, 'path');
-      const tree = fromMarkdown(value);
+    protected async addOriginInfo() {
+      const path = this.getMetaValue(await this.getActiveFileValue(), 'path');
+      const tree = fromMarkdown(this.value);
       const headings = filter(tree, 'heading');
       const headingIndex = headings.findIndex(item => item.children[0].value === '写在前面');
       const headingName = headings[headingIndex + 1].children[0].value;
@@ -129,10 +130,12 @@ export default class Processor {
           insertIndex = index;
         }
       });
-      const originInfo = u('blockquote', [
+      const baseUrl = 'https://blog.songxingguo.com';
+      const url = path ? `${baseUrl}/posts/${path}` : `${baseUrl}`;
+      const originInfo = u('blockquote', [  
           u('paragraph',[
             u('text', { value: "点击链接查看"}),
-            u('link', { title: '原文', url: `https://blog.songxingguo.com/posts/${path}`}, [
+            u('link', { title: '原文', url}, [
               u('text', { value: "原文"})
             ]),
             u('text', { value: "，订阅"}),
@@ -144,23 +147,23 @@ export default class Processor {
         ]
       )
       tree.children.splice(insertIndex, 0, originInfo);
-      return toMarkdown(tree);
+      this.value = toMarkdown(tree);
     }
 
-    protected removeMetadataInfo(value: any) {
-      const tree = fromMarkdown(value);
+    protected removeMetadataInfo() {
+      const tree = fromMarkdown(this.value);
       let [start =  0, end = 0] = [];
       start = tree.children.findIndex(item => item.type === 'thematicBreak');
       end = tree.children.findIndex((item, index) => item.type === 'thematicBreak' && index !== start);
       tree.children.splice(start, end - start + 1);
-      return toMarkdown(tree);
+      this.value = toMarkdown(tree);
     }
 
-    protected removeMoreReading(value: any) {
-      const tree = fromMarkdown(value);
+    protected removeMoreReading() {
+      const tree = fromMarkdown(this.value);
       const index = tree.children.findIndex(item => item.type === 'heading' && item.children[0].value == '扩展阅读');
       tree.children.splice(index, tree.children.length);
-      return toMarkdown(tree);
+      this.value = toMarkdown(tree);
     }
   
     protected getMetaValue(value: string, key: string) {

@@ -7,8 +7,6 @@ import * as YuQue from '../api/yuque';
 import Processor from "./Processor";
 import { ConfirmModal } from "../ui/ui";
 
-const PROPERTIES_REGEX = /^---[\s\S]+?---\n/;
-
 interface DOC {
   uuid: string;
 }
@@ -26,13 +24,14 @@ export default class YuqueProcessor extends Processor{
     if(await this.validate()) return;
 
     super.process(action, params);
-
-    let value = await this.getValue();
+;
     // 添加原文地址
-    value = this.addOriginInfo(value);
+    this.addOriginInfo();
 
     // 删除元信息
-    value = this.removeMetadataInfo(value);
+    this.removeMetadataInfo();
+
+    const value = this.getValue();
 
     const actionMap = { 
       [ACTION_PUBLISH]: ():any => {
@@ -47,7 +46,7 @@ export default class YuqueProcessor extends Processor{
 
   private async publish(value: string, params: DOC) {
     const title  = this.getActiveFile().basename;
-    const slug = this.getMetaValue(await this.getValue(), 'path').split('/')[1];
+    const slug = this.getMetaValue(await this.getActiveFileValue(), 'path').split('/')[1];
     const doc = await YuQue.hasDoc(this.settings.yuqueSetting, slug) 
     if(!!doc) {
       const onComfirm = async () => {
