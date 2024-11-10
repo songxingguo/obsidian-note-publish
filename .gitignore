@@ -5,6 +5,6 @@ package-lock.json
 yarn.lock
 .npmrc
 data.json
+main.js
 dist
 .idea
-main.js
