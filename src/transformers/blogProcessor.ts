@@ -3,7 +3,7 @@ import {
   Notice,
 } from "obsidian";
 import fs from 'fs';
-import { simpleGit } from 'simple-git';
+// import { simpleGit } from 'simple-git';
 import { PublishSettings } from "../publish";
 import Processor from "./processor";
 
@@ -38,7 +38,7 @@ export default class BlogProcessor  extends Processor{
         this.create(value);
       },
       [ACTION_PUBLISH]: ():any => {
-        this.publish(value);
+        // this.publish(value);
       },
       [ACTION_COPY]: ():any => {
         this.copy(value);
@@ -54,19 +54,19 @@ export default class BlogProcessor  extends Processor{
     new Notice("Update successfully");
   }
 
-  private async publish(value: string) {
-    const title  = this.getMetaValue(value, 'title');
-    const directory = this.settings.blogSetting.directory;
-    simpleGit(directory, {
-      progress({ method, stage, progress }) {
-        console.log(`git.${method} ${stage} stage ${progress}% complete`);
-      },
-    })
-    .add('./*')
-    .commit(`feat: 发布${title}`)
-    .push(['-u', 'origin', 'main'], () => console.log('done'));;
-    new Notice("Published successfully");
-  }
+  // private async publish(value: string) {
+  //   const title  = this.getMetaValue(value, 'title');
+  //   const directory = this.settings.blogSetting.directory;
+  //   simpleGit(directory, {
+  //     progress({ method, stage, progress }) {
+  //       console.log(`git.${method} ${stage} stage ${progress}% complete`);
+  //     },
+  //   })
+  //   .add('./*')
+  //   .commit(`feat: 发布${title}`)
+  //   .push(['-u', 'origin', 'main'], () => console.log('done'));;
+  //   new Notice("Published successfully");
+  // }
 
   protected addBlogMeta (value: string) {
     const title  = this.getActiveFile().basename; 
