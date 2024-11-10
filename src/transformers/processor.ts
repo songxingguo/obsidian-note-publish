@@ -52,7 +52,7 @@ export default class Processor {
         const links = this.getLinks(value);
 
         // 删除【## 扩展阅读】 后的内容
-        value = value.replace(SUFFIX_REGEX, "");
+        value = this.removeMoreReading(value);
 
         // 替换 Callouts 语法
         value = value.replaceAll(CALLOUTS_REGEX, "");
@@ -144,6 +144,22 @@ export default class Processor {
         ]
       )
       tree.children.splice(insertIndex, 0, originInfo);
+      return toMarkdown(tree);
+    }
+
+    protected removeMetadataInfo(value: any) {
+      const tree = fromMarkdown(value);
+      let [start =  0, end = 0] = [];
+      start = tree.children.findIndex(item => item.type === 'thematicBreak');
+      end = tree.children.findIndex((item, index) => item.type === 'thematicBreak' && index !== start);
+      tree.children.splice(start, end - start + 1);
+      return toMarkdown(tree);
+    }
+
+    protected removeMoreReading(value: any) {
+      const tree = fromMarkdown(value);
+      const index = tree.children.findIndex(item => item.type === 'heading' && item.children[0].value == '扩展阅读');
+      tree.children.splice(index, tree.children.length);
       return toMarkdown(tree);
     }
   

@@ -32,7 +32,7 @@ export default class YuqueProcessor extends Processor{
     value = this.addOriginInfo(value);
 
     // 删除元信息
-    value = value.replace(PROPERTIES_REGEX, "");
+    value = this.removeMetadataInfo(value);
 
     const actionMap = { 
       [ACTION_PUBLISH]: ():any => {
