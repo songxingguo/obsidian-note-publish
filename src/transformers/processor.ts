@@ -1,4 +1,3 @@
-import { filter } from 'unist-util-filter';
 import {
   App,
   TFile,
@@ -10,6 +9,7 @@ import { fromMarkdown } from 'mdast-util-from-markdown';
 import { toMarkdown } from 'mdast-util-to-markdown';
 import { visit } from 'unist-util-visit';
 import { u } from 'unist-builder';
+const PROPERTIES_REGEX = /^---[\s\S]+?---\n/;
 
 const MD_REGEX = /\[(.*?)\]\((.*?)\)/g;
 const WIKI_REGEX = /\[\[(.*)\]\]/g;
@@ -116,6 +116,27 @@ export default class Processor {
   
     protected getActiveFile(): TFile {
       return this.app.workspace.getActiveFile() || null;
+    }
+
+    protected async addBlogMeta () {
+      const value = await this.getActiveFileValue();
+      const title  = this.getActiveFile().basename; 
+      const path = this.getActiveFile().path;
+      const obsidianUrl = `obsidian://open?vault=content&file=${encodeURIComponent(path)}`
+      const blogMetaTpl = `title: ${title}
+  Obsidian地址: ${obsidianUrl}
+  `;
+      const match = value.match(PROPERTIES_REGEX);
+      let blogMeta = match[0].trim().replaceAll('---\n', '').replaceAll('---', '');
+      blogMeta = `---\n${blogMeta}${blogMetaTpl}---\n`
+      this.value = this.value.replace(PROPERTIES_REGEX, blogMeta);
+    }
+
+    protected async addBlogTOC () {
+      const value = await this.getActiveFileValue();
+      const match = value.match(PROPERTIES_REGEX);
+      const toc = `${match[0]}## 目录\n`
+      this.value = this.value.replace(PROPERTIES_REGEX, toc);
     }
   
     protected async addOriginInfo() {

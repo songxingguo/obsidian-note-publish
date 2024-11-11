@@ -3,11 +3,9 @@ import {
   Notice,
 } from "obsidian";
 import fs from 'fs';
-// import { simpleGit } from 'simple-git';
+import { simpleGit } from 'simple-git';
 import { PublishSettings } from "../publish";
 import Processor from "./Processor";
-
-const PROPERTIES_REGEX = /^---[\s\S]+?---\n/;
 
 interface DOC {
   uuid: string;
@@ -25,14 +23,15 @@ export default class BlogProcessor  extends Processor{
   public async process(action: string, params?: DOC): Promise<void> {
     if(await this.validate()) return;
 
-    super.process(action, params);
-    
-    let value = await this.getValue();
-    // 添加博客元信息
-    value = this.addBlogMeta(value);
-    // 添加目录
-    value = this.addBlogTOC(value);
+    await super.process(action, params);
 
+    // 添加博客元信息
+    await this.addBlogMeta();
+
+    // 添加目录
+    this.addBlogTOC();
+
+    const value = this.getValue();
     const actionMap = {
       [ACTION_CREATE]: ():any => {
         this.create(value);
@@ -54,36 +53,17 @@ export default class BlogProcessor  extends Processor{
     new Notice("Update successfully");
   }
 
-  // private async publish(value: string) {
-  //   const title  = this.getMetaValue(value, 'title');
-  //   const directory = this.settings.blogSetting.directory;
-  //   simpleGit(directory, {
-  //     progress({ method, stage, progress }) {
-  //       console.log(`git.${method} ${stage} stage ${progress}% complete`);
-  //     },
-  //   })
-  //   .add('./*')
-  //   .commit(`feat: 发布${title}`)
-  //   .push(['-u', 'origin', 'main'], () => console.log('done'));;
-  //   new Notice("Published successfully");
-  // }
-
-  protected addBlogMeta (value: string) {
-    const title  = this.getActiveFile().basename; 
-    const path = this.getActiveFile().path;
-    const obsidianUrl = `obsidian://open?vault=content&file=${encodeURIComponent(path)}`
-    const blogMetaTpl = `title: ${title}
-Obsidian地址: ${obsidianUrl}
-`;
-    const match = value.match(PROPERTIES_REGEX);
-    let blogMeta = match[0].trim().replaceAll('---\n', '').replaceAll('---', '');
-    blogMeta = `---\n${blogMeta}${blogMetaTpl}---\n`
-    return value.replace(PROPERTIES_REGEX, blogMeta);
-  }
-
-  private addBlogTOC (value: string) {
-    const match = value.match(PROPERTIES_REGEX);
-    const toc = `${match[0]}## 目录\n`
-    return value.replace(PROPERTIES_REGEX, toc);
+  private async publish(value: string) {
+    const title  = this.getMetaValue(value, 'title');
+    const directory = this.settings.blogSetting.directory;
+    simpleGit(directory, {
+      progress({ method, stage, progress }) {
+        console.log(`git.${method} ${stage} stage ${progress}% complete`);
+      },
+    })
+    .add('./*')
+    .commit(`feat: 发布${title}`)
+    .push(['-u', 'origin', 'main'], () => console.log('done'));;
+    new Notice("Published successfully");
   }
 }

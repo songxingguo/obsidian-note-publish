@@ -23,7 +23,7 @@ export default class YuqueProcessor extends Processor{
   public async process(action: string, params?: DOC): Promise<void> {
     if(await this.validate()) return;
 
-    super.process(action, params);
+    await super.process(action, params);
 ;
     // 添加原文地址
     this.addOriginInfo();
