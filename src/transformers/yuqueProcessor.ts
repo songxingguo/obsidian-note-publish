@@ -2,10 +2,10 @@ import {
   App,
   Notice,
 } from "obsidian";
-import { PublishSettings } from "../publish";
 import * as YuQue from '../api/yuque';
-import Processor from "./Processor";
+import { PublishSettings } from "../publish";
 import { ConfirmModal } from "../ui/ui";
+import Processor from "./Processor";
 
 interface DOC {
   uuid: string;
@@ -47,6 +47,10 @@ export default class YuqueProcessor extends Processor{
   private async publish(value: string, params: DOC) {
     const title  = this.getActiveFile().basename;
     const slug = this.getMetaValue(await this.getActiveFileValue(), 'path').split('/')[1];
+    if(!slug) {
+      new Notice("slug 不能为空，请检查 path");
+      return true;
+    }
     const doc = await YuQue.hasDoc(this.settings.yuqueSetting, slug) 
     if(!!doc) {
       const onComfirm = async () => {

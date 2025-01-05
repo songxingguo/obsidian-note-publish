@@ -1,14 +1,14 @@
-import {
-  App,
-  TFile,
-  Notice
-} from "obsidian";
-import { PublishSettings } from "../publish";
 import frontMatter from "front-matter";
 import { fromMarkdown } from 'mdast-util-from-markdown';
 import { toMarkdown } from 'mdast-util-to-markdown';
-import { visit } from 'unist-util-visit';
+import {
+  App,
+  Notice,
+  TFile
+} from "obsidian";
 import { u } from 'unist-builder';
+import { visit } from 'unist-util-visit';
+import { PublishSettings } from "../publish";
 const PROPERTIES_REGEX = /^---[\s\S]+?---\n/;
 
 const MD_REGEX = /\[(.*?)\]\((.*?)\)/g;

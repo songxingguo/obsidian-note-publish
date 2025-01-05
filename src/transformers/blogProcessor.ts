@@ -1,8 +1,8 @@
+import fs from 'fs';
 import {
   App,
   Notice,
 } from "obsidian";
-import fs from 'fs';
 import { simpleGit } from 'simple-git';
 import { PublishSettings } from "../publish";
 import Processor from "./Processor";
@@ -37,7 +37,7 @@ export default class BlogProcessor  extends Processor{
         this.create(value);
       },
       [ACTION_PUBLISH]: ():any => {
-        // this.publish(value);
+        this.publish(value);
       },
       [ACTION_COPY]: ():any => {
         this.copy(value);
@@ -46,15 +46,19 @@ export default class BlogProcessor  extends Processor{
     actionMap[action] ? actionMap[action]() : new Notice("Invalid action!");
   }
 
-  private create(value: string) {
-    const path  = this.getMetaValue(value, 'path');
+  private async create(value: string) {
+    const path  = this.getMetaValue(await this.getActiveFileValue(), 'path');
+    if(!path) {
+      new Notice("path 不能为空，请检查 path");
+      return true;
+    }
     const directory = this.settings.blogSetting.directory;
     fs.writeFileSync(`${directory}/${path}.md`, value);
     new Notice("Update successfully");
   }
 
   private async publish(value: string) {
-    const title  = this.getMetaValue(value, 'title');
+    const title  = this.getMetaValue(await this.getActiveFileValue(), 'title');
     const directory = this.settings.blogSetting.directory;
     simpleGit(directory, {
       progress({ method, stage, progress }) {
