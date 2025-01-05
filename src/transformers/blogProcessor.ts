@@ -26,7 +26,10 @@ export default class BlogProcessor  extends Processor{
     await super.process(action, params);
 
     // 添加博客元信息
-    await this.addBlogMeta();
+    this.addBlogMeta();
+
+    // 添加原文地址
+    this.addOriginInfo();
 
     // 添加目录
     this.addBlogTOC();

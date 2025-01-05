@@ -1,6 +1,9 @@
 import frontMatter from "front-matter";
 import { fromMarkdown } from 'mdast-util-from-markdown';
-import { toMarkdown } from 'mdast-util-to-markdown';
+import { frontmatterFromMarkdown, frontmatterToMarkdown } from 'mdast-util-frontmatter';
+import { toMarkdown, type Options } from 'mdast-util-to-markdown';
+import { frontmatter } from 'micromark-extension-frontmatter';
+import { gfm } from 'micromark-extension-gfm';
 import {
   App,
   Notice,
@@ -14,6 +17,17 @@ const PROPERTIES_REGEX = /^---[\s\S]+?---\n/;
 const MD_REGEX = /\[(.*?)\]\((.*?)\)/g;
 const WIKI_REGEX = /\[\[(.*)\]\]/g;
 const CALLOUTS_REGEX = />\s*\[!\w+]\s*(.*)/gm;
+
+const options: Options =  {
+  bullet: "-",
+  rule: '-',
+  extensions: [frontmatterToMarkdown(['yaml', 'toml'])]
+}
+
+const fromMarkdownOptions = {
+  extensions: [gfm(), frontmatter(['yaml', 'toml'])],
+  mdastExtensions: [frontmatterFromMarkdown(['yaml', 'toml'])]
+}
 
 interface Link {
   name: string;
@@ -118,18 +132,14 @@ export default class Processor {
       return this.app.workspace.getActiveFile() || null;
     }
 
-    protected async addBlogMeta () {
-      const value = await this.getActiveFileValue();
+    protected addBlogMeta () {
+      const tree = fromMarkdown(this.value, fromMarkdownOptions);
+      const yaml = tree.children.find((item) => item.type === 'yaml');
       const title  = this.getActiveFile().basename; 
       const path = this.getActiveFile().path;
       const obsidianUrl = `obsidian://open?vault=content&file=${encodeURIComponent(path)}`
-      const blogMetaTpl = `title: ${title}
-  Obsidian地址: ${obsidianUrl}
-  `;
-      const match = value.match(PROPERTIES_REGEX);
-      let blogMeta = match[0].trim().replaceAll('---\n', '').replaceAll('---', '');
-      blogMeta = `---\n${blogMeta}${blogMetaTpl}---\n`
-      this.value = this.value.replace(PROPERTIES_REGEX, blogMeta);
+      yaml.value = [yaml.value,`title: ${title}`,`Obsidian地址: ${obsidianUrl}`].join('\n')
+      this.value = toMarkdown(tree, options);
     }
 
     protected async addBlogTOC () {
@@ -141,7 +151,7 @@ export default class Processor {
   
     protected async addOriginInfo() {
       const path = this.getMetaValue(await this.getActiveFileValue(), 'path');
-      const tree = fromMarkdown(this.value);
+      const tree = fromMarkdown(this.value, fromMarkdownOptions);
       const headings = filter(tree, 'heading');
       const headingIndex = headings.findIndex(item => item.children[0].value === '写在前面');
       const headingName = headings[headingIndex + 1].children[0].value;
@@ -168,23 +178,23 @@ export default class Processor {
         ]
       )
       tree.children.splice(insertIndex, 0, originInfo);
-      this.value = toMarkdown(tree);
+      this.value = toMarkdown(tree, options);
     }
 
     protected removeMetadataInfo() {
-      const tree = fromMarkdown(this.value);
+      const tree = fromMarkdown(this.value, fromMarkdownOptions);
       let [start =  0, end = 0] = [];
       start = tree.children.findIndex(item => item.type === 'thematicBreak');
       end = tree.children.findIndex((item, index) => item.type === 'thematicBreak' && index !== start);
       tree.children.splice(start, end - start + 1);
-      this.value = toMarkdown(tree);
+      this.value = toMarkdown(tree, options);
     }
 
     protected removeMoreReading() {
-      const tree = fromMarkdown(this.value);
+      const tree = fromMarkdown(this.value, fromMarkdownOptions);
       const index = tree.children.findIndex(item => item.type === 'heading' && item.children[0].value == '扩展阅读');
       tree.children.splice(index, tree.children.length);
-      this.value = toMarkdown(tree);
+      this.value = toMarkdown(tree, options);
     }
   
     protected getMetaValue(value: string, key: string) {
