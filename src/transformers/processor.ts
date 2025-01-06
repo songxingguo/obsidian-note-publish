@@ -12,7 +12,6 @@ import {
 import { u } from 'unist-builder';
 import { visit } from 'unist-util-visit';
 import { PublishSettings } from "../publish";
-const PROPERTIES_REGEX = /^---[\s\S]+?---\n/;
 
 const MD_REGEX = /\[(.*?)\]\((.*?)\)/g;
 const WIKI_REGEX = /\[\[(.*)\]\]/g;
@@ -143,10 +142,12 @@ export default class Processor {
     }
 
     protected async addBlogTOC () {
-      const value = await this.getActiveFileValue();
-      const match = value.match(PROPERTIES_REGEX);
-      const toc = `${match[0]}## 目录\n`
-      this.value = this.value.replace(PROPERTIES_REGEX, toc);
+      const tree = fromMarkdown(this.value, fromMarkdownOptions);
+      const toc = u('heading',{depth: 2},[
+        u('text', { value: "目录"}),
+      ])
+      tree.children.splice(1, 0, toc);
+      this.value = toMarkdown(tree, options);
     }
   
     protected async addOriginInfo() {

@@ -26,7 +26,7 @@ export default class YuqueProcessor extends Processor{
     await super.process(action, params);
 ;
     // 添加原文地址
-    this.addOriginInfo();
+    await this.addOriginInfo();
 
     // 删除元信息
     this.removeMetadataInfo();
