@@ -152,15 +152,8 @@ export default class Processor {
     protected async addOriginInfo() {
       const path = this.getMetaValue(await this.getActiveFileValue(), 'path');
       const tree = fromMarkdown(this.value, fromMarkdownOptions);
-      const headings = filter(tree, 'heading');
-      const headingIndex = headings.findIndex(item => item.children[0].value === '写在前面');
-      const headingName = headings[headingIndex + 1].children[0].value;
-      let insertIndex = 0;
-      visit(tree, "heading", (node, index) => {
-        if(node.children[0].value == headingName ) {
-          insertIndex = index;
-        }
-      });
+      const headingIndex = tree.children.findIndex((item) => item.type === 'heading');
+      if(headingIndex < 0) return
       const baseUrl = 'https://blog.songxingguo.com';
       const url = path ? `${baseUrl}/posts/${path}` : `${baseUrl}`;
       const originInfo = u('blockquote', [  
@@ -177,7 +170,7 @@ export default class Processor {
           ])
         ]
       )
-      tree.children.splice(insertIndex, 0, originInfo);
+      tree.children.splice(headingIndex, 0, originInfo);
       this.value = toMarkdown(tree, options);
     }
 
