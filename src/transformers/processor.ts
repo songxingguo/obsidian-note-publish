@@ -1,7 +1,7 @@
 import frontMatter from "front-matter";
 import { fromMarkdown } from 'mdast-util-from-markdown';
 import { frontmatterFromMarkdown, frontmatterToMarkdown } from 'mdast-util-frontmatter';
-import { toMarkdown, type Options } from 'mdast-util-to-markdown';
+import { toMarkdown } from 'mdast-util-to-markdown';
 import { frontmatter } from 'micromark-extension-frontmatter';
 import { gfm } from 'micromark-extension-gfm';
 import {
@@ -17,15 +17,19 @@ const MD_REGEX = /\[(.*?)\]\((.*?)\)/g;
 const WIKI_REGEX = /\[\[(.*)\]\]/g;
 const CALLOUTS_REGEX = />\s*\[!\w+]\s*(.*)/gm;
 
-const options: Options =  {
-  bullet: "-",
-  rule: '-',
-  extensions: [frontmatterToMarkdown(['yaml', 'toml'])]
+const toMarkdownWithOptions = (tree) => {
+  return toMarkdown(tree, {
+    bullet: "-",
+    rule: '-',
+    extensions: [frontmatterToMarkdown(['yaml', 'toml'])]
+  });
 }
 
-const fromMarkdownOptions = {
-  extensions: [gfm(), frontmatter(['yaml', 'toml'])],
-  mdastExtensions: [frontmatterFromMarkdown(['yaml', 'toml'])]
+const fromMarkdownWithOptions = (value) => {
+  return fromMarkdown(value, {
+    extensions: [gfm(), frontmatter(['yaml', 'toml'])],
+    mdastExtensions: [frontmatterFromMarkdown(['yaml', 'toml'])]
+  })
 }
 
 interface Link {
@@ -132,27 +136,27 @@ export default class Processor {
     }
 
     protected addBlogMeta () {
-      const tree = fromMarkdown(this.value, fromMarkdownOptions);
+      const tree = fromMarkdownWithOptions(this.value);
       const yaml = tree.children.find((item) => item.type === 'yaml');
       const title  = this.getActiveFile().basename; 
       const path = this.getActiveFile().path;
       const obsidianUrl = `obsidian://open?vault=content&file=${encodeURIComponent(path)}`
       yaml.value = [yaml.value,`title: ${title}`,`Obsidian地址: ${obsidianUrl}`].join('\n')
-      this.value = toMarkdown(tree, options);
+      this.value = toMarkdownWithOptions(tree)
     }
 
     protected async addBlogTOC () {
-      const tree = fromMarkdown(this.value, fromMarkdownOptions);
+      const tree = fromMarkdownWithOptions(this.value);
       const toc = u('heading',{depth: 2},[
         u('text', { value: "目录"}),
       ])
       tree.children.splice(1, 0, toc);
-      this.value = toMarkdown(tree, options);
+      this.value = toMarkdownWithOptions(tree)
     }
   
     protected async addOriginInfo() {
       const path = this.getMetaValue(await this.getActiveFileValue(), 'path');
-      const tree = fromMarkdown(this.value, fromMarkdownOptions);
+      const tree = fromMarkdownWithOptions(this.value);
       const headingIndex = tree.children.findIndex((item) => item.type === 'heading');
       if(headingIndex < 0) return
       const baseUrl = 'https://blog.songxingguo.com';
@@ -172,23 +176,23 @@ export default class Processor {
         ]
       )
       tree.children.splice(headingIndex, 0, originInfo);
-      this.value = toMarkdown(tree, options);
+      this.value = toMarkdownWithOptions(tree)
     }
 
     protected removeMetadataInfo() {
-      const tree = fromMarkdown(this.value, fromMarkdownOptions);
+      const tree = fromMarkdownWithOptions(this.value);
       let [start =  0, end = 0] = [];
       start = tree.children.findIndex(item => item.type === 'thematicBreak');
       end = tree.children.findIndex((item, index) => item.type === 'thematicBreak' && index !== start);
       tree.children.splice(start, end - start + 1);
-      this.value = toMarkdown(tree, options);
+      this.value = toMarkdownWithOptions(tree)
     }
 
     protected removeMoreReading() {
-      const tree = fromMarkdown(this.value, fromMarkdownOptions);
+      const tree = fromMarkdownWithOptions(this.value);
       const index = tree.children.findIndex(item => item.type === 'heading' && item.children[0].value == '扩展阅读');
       tree.children.splice(index, tree.children.length);
-      this.value = toMarkdown(tree, options);
+      this.value = toMarkdownWithOptions(tree)
     }
   
     protected getMetaValue(value: string, key: string) {

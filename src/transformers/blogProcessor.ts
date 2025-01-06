@@ -28,14 +28,14 @@ export default class BlogProcessor  extends Processor{
     // 添加博客元信息
     this.addBlogMeta();
 
-    // 添加目录
-    this.addBlogTOC();
-
     // 添加原文地址
     await this.addOriginInfo();
 
+    // 添加目录
+    this.addBlogTOC();
+
     const value = this.getValue();
-    
+
     const actionMap = {
       [ACTION_CREATE]: ():any => {
         this.create(value);
