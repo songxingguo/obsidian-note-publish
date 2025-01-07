@@ -1,7 +1,8 @@
 import { ItemView, Workspace, WorkspaceLeaf } from 'obsidian';
 import { PublishSettings } from '../publish';
-import YuqueProcessor, {ACTION_PUBLISH, ACTION_COPY} from "../transformers/YuqueProcessor";
 import BlogProcessor, { ACTION_CREATE } from "../transformers/BlogProcessor";
+import JuejinProcessor from "../transformers/JuejinProcessor";
+import YuqueProcessor, { ACTION_COPY, ACTION_PUBLISH } from "../transformers/YuqueProcessor";
 import * as YuQue from './../api/yuque';
 
 export const VIEW_TYPE_NOTE_PREVIEW = 'note-preview';
@@ -16,12 +17,15 @@ export class NotePreview extends ItemView {
     currentUuid: string;
     yuqueProcessor: YuqueProcessor;
     blogProcessor: BlogProcessor;
-    constructor(leaf: WorkspaceLeaf,  settings: PublishSettings, yuqueProcessor:YuqueProcessor, blogProcessor:BlogProcessor) {
+    juejinProcessor: JuejinProcessor;
+
+    constructor(leaf: WorkspaceLeaf,  settings: PublishSettings, yuqueProcessor:YuqueProcessor, blogProcessor:BlogProcessor, juejinProcessor: JuejinProcessor) {
         super(leaf);
         this.workspace = this.app.workspace;
         this.settings = settings;
         this.yuqueProcessor = yuqueProcessor;
         this.blogProcessor = blogProcessor;
+        this.juejinProcessor = juejinProcessor;
     }
 
     getViewType() {
@@ -131,6 +135,34 @@ export class NotePreview extends ItemView {
 
         postBtnToBlog.onclick= async() => {
           await this.postArticleToBlog();
+        }
+
+        this.toolbar = parent.createDiv({ cls: 'preview-toolbar' });
+
+        const juejinLineDiv = this.toolbar.createDiv({ cls: 'toolbar-line' });
+
+        const juejinCopyBtn = juejinLineDiv.createEl('button', { cls: 'copy-button' }, async (button) => {
+          button.setText('复制');
+        })
+
+        juejinCopyBtn.onclick = async() => {
+          await this.juejinProcessor.process(ACTION_COPY);
+        }
+
+        const postJuejinDraftBtn = juejinLineDiv.createEl('button', { cls: 'copy-button' }, async (button) => {
+            button.setText('创建/更新草稿');
+        })
+
+        postJuejinDraftBtn. onclick= async() => {
+          await this.juejinProcessor.process(ACTION_CREATE);
+        }
+
+        const postJuejinBtn = juejinLineDiv.createEl('button', { cls: 'copy-button' }, async (button) => {
+          button.setText('发布到掘金');
+        })
+
+        postJuejinBtn. onclick= async() => {
+            await this.juejinProcessor.process(ACTION_PUBLISH);
         }
     }
 

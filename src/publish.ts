@@ -1,20 +1,21 @@
-import { Notice, WorkspaceLeaf, Plugin } from "obsidian";
-
+import { Notice, Plugin, WorkspaceLeaf } from "obsidian";
+import * as JueJin from "./api/juejin";
+import * as YuQue from "./api/yuque";
+import ImageStore from "./imageStore";
+import BlogProcessor from "./transformers/BlogProcessor";
+import JuejinProcessor from "./transformers/JuejinProcessor";
+import YuqueProcessor from "./transformers/YuqueProcessor";
+import { NotePreview, VIEW_TYPE_NOTE_PREVIEW } from './ui/notePreview';
+import PublishSettingTab from "./ui/publishSettingTab";
+import { ImagekitSetting } from "./uploader/imagekit/imagekitUploader";
 import ImageTagProcessor, {
   ACTION_PUBLISH,
 } from "./uploader/imageTagProcessor";
-import YuqueProcessor from "./transformers/YuqueProcessor";
-import BlogProcessor from "./transformers/BlogProcessor";
 import ImageUploader from "./uploader/imageUploader";
-import { ImgurAnonymousSetting } from "./uploader/imgur/imgurAnonymousUploader";
-import { IMGUR_PLUGIN_CLIENT_ID } from "./uploader/imgur/constants";
-import ImageStore from "./imageStore";
 import buildUploader from "./uploader/imageUploaderBuilder";
-import PublishSettingTab from "./ui/publishSettingTab";
+import { IMGUR_PLUGIN_CLIENT_ID } from "./uploader/imgur/constants";
+import { ImgurAnonymousSetting } from "./uploader/imgur/imgurAnonymousUploader";
 import { OssSetting } from "./uploader/oss/ossUploader";
-import { ImagekitSetting } from "./uploader/imagekit/imagekitUploader";
-import * as YuQue from "./api/yuque";
-import { NotePreview, VIEW_TYPE_NOTE_PREVIEW } from './ui/notePreview';
 export interface PublishSettings {
   imageAltText: boolean;
   replaceOriginalDoc: boolean;
@@ -28,6 +29,7 @@ export interface PublishSettings {
   imagekitSetting: ImagekitSetting;
   yuqueSetting: YuQue.YuQueSetting;
   blogSetting: BlogSetting;
+  juejinSetting: JueJin.JueJinSetting;
 }
 interface BlogSetting {
   directory: string
@@ -64,6 +66,9 @@ const DEFAULT_SETTINGS: PublishSettings = {
   },
   blogSetting :{
     directory: ''
+  },
+  juejinSetting :{
+    token: ''
   }
 };
 export default class ObsidianPublish extends Plugin {
@@ -72,6 +77,7 @@ export default class ObsidianPublish extends Plugin {
   imageUploader: ImageUploader;
   yuqueProcessor: YuqueProcessor;
   blogProcessor: BlogProcessor;
+  juejinProcessor: JuejinProcessor;
 
   async onload() {
     await this.loadSettings();
@@ -80,7 +86,7 @@ export default class ObsidianPublish extends Plugin {
     this.addStatusBarItem().setText("Status Bar Text");
     this.registerView(
 			VIEW_TYPE_NOTE_PREVIEW,
-			(leaf) => new NotePreview(leaf, this.settings,  this.yuqueProcessor, this.blogProcessor)
+			(leaf) => new NotePreview(leaf, this.settings,  this.yuqueProcessor, this.blogProcessor, this.juejinProcessor)
 		);
     
     const ribbonIconEl = this.addRibbonIcon('clipboard-paste', '笔记预览', (evt: MouseEvent) => {
@@ -142,6 +148,7 @@ export default class ObsidianPublish extends Plugin {
     try {
       this.yuqueProcessor = new YuqueProcessor(this.app, this.settings);
       this.blogProcessor = new BlogProcessor(this.app, this.settings);
+      this.juejinProcessor = new JuejinProcessor(this.app, this.settings);
     } catch (e) {
       console.log(`Failed to setup image uploader: ${e}`);
     }

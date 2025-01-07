@@ -1,6 +1,6 @@
-import { App, Notice, PluginSettingTab, Setting } from "obsidian";
-import ObsidianPublish from "../publish";
+import { App, PluginSettingTab, Setting } from "obsidian";
 import ImageStore from "../imageStore";
+import ObsidianPublish from "../publish";
 import { RegionList } from "../uploader/oss/common";
 
 export default class PublishSettingTab extends PluginSettingTab {
@@ -106,6 +106,15 @@ export default class PublishSettingTab extends PluginSettingTab {
             (value) => (this.plugin.settings.yuqueSetting.public = value)
           )
       );
+    
+    new Setting(imageStoreTypeDiv).setName("Juejin").setHeading();
+
+    new Setting(imageStoreTypeDiv).setName("Token").addText((text) =>
+      text
+        .setPlaceholder("Enter your Juejin Token")
+        .setValue(this.plugin.settings.juejinSetting.token)
+        .onChange((value) => (this.plugin.settings.juejinSetting.token = value))
+    );
   
     new Setting(imageStoreTypeDiv).setName("Blog").setHeading();
 

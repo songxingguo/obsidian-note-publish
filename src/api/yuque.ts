@@ -17,7 +17,7 @@ export interface YuQueSetting {
 export async function addDoc(
   setting: YuQueSetting,
   title: string,
-  conent: string,
+  content: string,
   slug: string
 ) {
   try {
@@ -26,7 +26,7 @@ export async function addDoc(
       title,
       public: setting.public ? 1 : 0,
       format: "markdown",
-      body: conent,
+      body: content,
       slug,
     };
     const res = await requestUrl({
@@ -57,14 +57,14 @@ export async function hasDoc(setting: YuQueSetting, slug: string) {
   return doc;
 }
 
-export async function updateDoc(setting: YuQueSetting,  title: string, conent: string, slug:string) {
+export async function updateDoc(setting: YuQueSetting,  title: string, content: string, slug:string) {
   try {
     const url = `https://www.yuque.com/api/v2/repos/${setting.bookSlug}/docs/${slug}`;
     const body = {
       title,
       public: setting.public ? 1 : 0,
       format: "markdown",
-      body: conent,
+      body: content,
     };
     const res = await requestUrl({
       url,
