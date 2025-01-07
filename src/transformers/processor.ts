@@ -181,10 +181,7 @@ export default class Processor {
 
     protected removeMetadataInfo() {
       const tree = fromMarkdownWithOptions(this.value);
-      let [start =  0, end = 0] = [];
-      start = tree.children.findIndex(item => item.type === 'thematicBreak');
-      end = tree.children.findIndex((item, index) => item.type === 'thematicBreak' && index !== start);
-      tree.children.splice(start, end - start + 1);
+      tree.children.splice(0, 1);
       this.value = toMarkdownWithOptions(tree)
     }
 
