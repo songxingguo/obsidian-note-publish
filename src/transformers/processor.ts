@@ -51,6 +51,12 @@ const filter = (tree: any, type: string) => {
   return nodes;
 }
 
+function validateFileName(fileName) {
+  // 限定以小写字母开头，并且中间只包括小写字母和-，以小写字母结尾
+  const pattern = /^[a-z]{1}[a-z-]*?[a-z]$/;;
+  return pattern.test(fileName);
+}
+
 export default class Processor {
     protected app: App;
     protected settings: PublishSettings;
@@ -84,6 +90,12 @@ export default class Processor {
   
       if(!path || !categories || !description) {
         new Notice("请填写博客元信息：categories、description、path");
+        return true;
+      }
+
+      console.log('path.split("/")[1]', path.split("/")[1]);
+      if(!validateFileName(path.split("/")[1])) {
+        new Notice("路径格式不正确，请以中横线分割：example-path");
         return true;
       }
 
