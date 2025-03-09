@@ -1,0 +1,44 @@
+import hljs from 'highlight.js'
+import MarkdownIt from 'markdown-it'
+import markdownItAbbr from 'markdown-it-abbr'
+import MarkdownItDeflist from 'markdown-it-deflist'
+import markdownItFootnote from 'markdown-it-footnote'
+import MarkdownItMark from 'markdown-it-mark'
+import MarkdownItSub from 'markdown-it-sub'
+import MarkdownItSup from 'markdown-it-sup'
+import MarkdownItTaskLists from 'markdown-it-task-lists'
+
+const MD = new MarkdownIt({
+  html: true, // 在源码中启用HTML标签
+  linkify: true, // 将类似URL的文本自动转换为链接
+  breaks: true, // 转换段落里的 '\n' 到 <br>
+  highlight: function (str, lang) {
+    return highlightFormatCode(str, lang)
+  }
+})
+  .use(MarkdownItSub)
+  .use(MarkdownItSup)
+  .use(MarkdownItMark)
+  .use(MarkdownItDeflist)
+  .use(MarkdownItTaskLists)
+  .use(markdownItAbbr)
+  .use(markdownItFootnote)
+  // 其余的markdownIt插件...
+
+const highlightFormatCode = (str: string, lang: string): string => {
+  if (lang && hljs.getLanguage(lang)) {
+    try {
+      return codeBlockStyle(hljs.highlight(lang, str, true).value)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  return codeBlockStyle(MD.utils.escapeHtml(str))
+}
+
+const codeBlockStyle = (val: string): string => {
+  return `<pre class="hljs" style="padding: 10px;border-radius: 10px;"><code>${val}</code></pre>`
+}
+
+export default MD

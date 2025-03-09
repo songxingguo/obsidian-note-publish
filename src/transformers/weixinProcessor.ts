@@ -5,6 +5,7 @@ import {
 import * as Weixin from '../api/weixin';
 import { PublishSettings } from "../publish";
 import { ConfirmModal } from "../ui/ui";
+import md from '../utils/md';
 import Processor from "./Processor";
 
 interface DOC {
@@ -49,6 +50,18 @@ export default class WeixinProcessor extends Processor{
   }
 
   private async create(value: string, params: DOC) {
+    // const markdownParser =  new MarkdownIt(
+    //   {
+    //       html: true,
+    //       linkify: true,
+    //       typographer: true,
+    //       breaks: true,
+    //   }
+    // )
+    // markdownParser.render(value);
+    console.log('value1', value);
+    value = md.render(value);
+    console.log('value2', value);
     const title  = this.getActiveFile().basename;
     const slug = this.getMetaValue(await this.getActiveFileValue(), 'path').split('/')[1];
     if(!slug) {
