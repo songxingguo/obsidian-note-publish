@@ -2,6 +2,7 @@ import { ItemView, Workspace, WorkspaceLeaf } from 'obsidian';
 import { PublishSettings } from '../publish';
 import BlogProcessor, { ACTION_CREATE } from "../transformers/BlogProcessor";
 import JuejinProcessor from "../transformers/JuejinProcessor";
+import WeixinProcessor from "../transformers/WeixinProcessor";
 import YuqueProcessor, { ACTION_COPY, ACTION_PUBLISH } from "../transformers/YuqueProcessor";
 import * as YuQue from './../api/yuque';
 
@@ -18,14 +19,16 @@ export class NotePreview extends ItemView {
     yuqueProcessor: YuqueProcessor;
     blogProcessor: BlogProcessor;
     juejinProcessor: JuejinProcessor;
+    weixinProcessor: WeixinProcessor;
 
-    constructor(leaf: WorkspaceLeaf,  settings: PublishSettings, yuqueProcessor:YuqueProcessor, blogProcessor:BlogProcessor, juejinProcessor: JuejinProcessor) {
+    constructor(leaf: WorkspaceLeaf,  settings: PublishSettings, yuqueProcessor:YuqueProcessor, blogProcessor:BlogProcessor, juejinProcessor: JuejinProcessor, weixinProcessor:WeixinProcessor) {
         super(leaf);
         this.workspace = this.app.workspace;
         this.settings = settings;
         this.yuqueProcessor = yuqueProcessor;
         this.blogProcessor = blogProcessor;
         this.juejinProcessor = juejinProcessor;
+        this.weixinProcessor = weixinProcessor;
     }
 
     getViewType() {
@@ -163,6 +166,34 @@ export class NotePreview extends ItemView {
 
         postJuejinBtn. onclick= async() => {
             await this.juejinProcessor.process(ACTION_PUBLISH);
+        }
+
+        this.toolbar = parent.createDiv({ cls: 'preview-toolbar' });
+
+        const weixinLineDiv = this.toolbar.createDiv({ cls: 'toolbar-line' });
+
+        const weixinCopyBtn = weixinLineDiv.createEl('button', { cls: 'copy-button' }, async (button) => {
+          button.setText('复制');
+        })
+
+        weixinCopyBtn.onclick = async() => {
+          await this.weixinProcessor.process(ACTION_COPY);
+        }
+
+        const postWeixinDraftBtn = weixinLineDiv.createEl('button', { cls: 'copy-button' }, async (button) => {
+            button.setText('创建/更新草稿');
+        })
+
+        postWeixinDraftBtn. onclick= async() => {
+          await this.weixinProcessor.process(ACTION_CREATE);
+        }
+
+        const postWeixinBtn = weixinLineDiv.createEl('button', { cls: 'copy-button' }, async (button) => {
+          button.setText('发布到微信公众号');
+        })
+
+        postWeixinBtn. onclick= async() => {
+            await this.weixinProcessor.process(ACTION_PUBLISH);
         }
     }
 

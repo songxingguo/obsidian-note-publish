@@ -1,9 +1,11 @@
 import { Notice, Plugin, WorkspaceLeaf } from "obsidian";
 import * as JueJin from "./api/juejin";
+import * as Weixin from "./api/weixin";
 import * as YuQue from "./api/yuque";
 import ImageStore from "./imageStore";
 import BlogProcessor from "./transformers/BlogProcessor";
 import JuejinProcessor from "./transformers/JuejinProcessor";
+import WeixinProcessor from "./transformers/WeixinProcessor";
 import YuqueProcessor from "./transformers/YuqueProcessor";
 import { NotePreview, VIEW_TYPE_NOTE_PREVIEW } from './ui/notePreview';
 import PublishSettingTab from "./ui/publishSettingTab";
@@ -30,6 +32,7 @@ export interface PublishSettings {
   yuqueSetting: YuQue.YuQueSetting;
   blogSetting: BlogSetting;
   juejinSetting: JueJin.JueJinSetting;
+  weixinSetting: Weixin.WeixinSetting;
 }
 interface BlogSetting {
   directory: string
@@ -69,6 +72,10 @@ const DEFAULT_SETTINGS: PublishSettings = {
   },
   juejinSetting :{
     token: ''
+  },
+  weixinSetting :{
+    appId: '',
+    secret: ''
   }
 };
 export default class ObsidianPublish extends Plugin {
@@ -78,6 +85,7 @@ export default class ObsidianPublish extends Plugin {
   yuqueProcessor: YuqueProcessor;
   blogProcessor: BlogProcessor;
   juejinProcessor: JuejinProcessor;
+  weixinProcessor: WeixinProcessor;
 
   async onload() {
     await this.loadSettings();
@@ -86,7 +94,7 @@ export default class ObsidianPublish extends Plugin {
     this.addStatusBarItem().setText("Status Bar Text");
     this.registerView(
 			VIEW_TYPE_NOTE_PREVIEW,
-			(leaf) => new NotePreview(leaf, this.settings,  this.yuqueProcessor, this.blogProcessor, this.juejinProcessor)
+			(leaf) => new NotePreview(leaf, this.settings,  this.yuqueProcessor, this.blogProcessor, this.juejinProcessor, this.weixinProcessor)
 		);
     
     const ribbonIconEl = this.addRibbonIcon('clipboard-paste', '笔记预览', (evt: MouseEvent) => {
@@ -149,6 +157,7 @@ export default class ObsidianPublish extends Plugin {
       this.yuqueProcessor = new YuqueProcessor(this.app, this.settings);
       this.blogProcessor = new BlogProcessor(this.app, this.settings);
       this.juejinProcessor = new JuejinProcessor(this.app, this.settings);
+      this.weixinProcessor = new WeixinProcessor(this.app, this.settings);
     } catch (e) {
       console.log(`Failed to setup image uploader: ${e}`);
     }

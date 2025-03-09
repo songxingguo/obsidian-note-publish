@@ -106,6 +106,22 @@ export default class PublishSettingTab extends PluginSettingTab {
             (value) => (this.plugin.settings.yuqueSetting.public = value)
           )
       );
+
+    new Setting(imageStoreTypeDiv).setName("Weixin").setHeading();
+
+    new Setting(imageStoreTypeDiv).setName("AppId").addText((text) =>
+      text
+        .setPlaceholder("Enter your Weixin AppId")
+        .setValue(this.plugin.settings.weixinSetting.appId)
+        .onChange((value) => (this.plugin.settings.weixinSetting.appId = value))
+    );
+
+    new Setting(imageStoreTypeDiv).setName("Secret").addText((text) =>
+      text
+        .setPlaceholder("Enter your Weixin Secret")
+        .setValue(this.plugin.settings.weixinSetting.secret)
+        .onChange((value) => (this.plugin.settings.weixinSetting.secret = value))
+    );
     
     new Setting(imageStoreTypeDiv).setName("Juejin").setHeading();
 
